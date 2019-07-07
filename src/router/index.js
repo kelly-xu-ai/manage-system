@@ -101,7 +101,12 @@ export default new Router({
                     path: '/donate',
                     component: resolve => require(['../components/page/Donate.vue'], resolve),
                     meta: { title: '支持作者' }
-                }
+                },
+                // {
+                //     path: '/mainuser',
+                //     component: resolve => require(['../components/page/MainUser.vue'], resolve),
+                //     meta: { title: '主账号信息' }
+                // },
             ]
         },
         {

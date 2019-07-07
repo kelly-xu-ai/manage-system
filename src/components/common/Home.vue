@@ -12,11 +12,13 @@
                 </transition>
             </div>
         </div>
+        <v-footer></v-footer>
     </div>
 </template>
 
 <script>
     import vHead from './Header.vue';
+    import vFooter from './Footer.vue';
     import vSidebar from './Sidebar.vue';
     import vTags from './Tags.vue';
     import bus from './bus';
@@ -28,7 +30,7 @@
             }
         },
         components:{
-            vHead, vSidebar, vTags
+            vHead, vSidebar, vTags, vFooter
         },
         created(){
             bus.$on('collapse', msg => {
