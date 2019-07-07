@@ -1,0 +1,338 @@
+<template>
+  <div class="login-wrap">
+    <div class="ms-login" v-show="!(passwordDialogVisible||resetDialog)">
+      <div class="ms-title theme-color">客户端登录</div>
+      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
+        <el-form-item prop="username">
+          <el-input v-model="ruleForm.username" placeholder="用户名">
+            <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
+          </el-input>
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input
+            type="password"
+            placeholder="密码"
+            v-model="ruleForm.password"
+            @keyup.enter.native="submitForm('ruleForm')"
+          >
+            <el-button slot="prepend" icon="el-icon-lx-lock"></el-button>
+          </el-input>
+        </el-form-item>
+        <el-button
+          type="text"
+          class="theme-font"
+          style="float: right;margin-bottom: 10px;"
+          @click="forgetButton"
+        >忘记密码</el-button>
+        <div class="login-btn">
+          <el-button type="primary" class="theme-color" @click="submitForm('ruleForm')">登录</el-button>
+        </div>
+      </el-form>
+    </div>
+    <el-dialog
+      title="提示"
+      :visible.sync="noticeDialogVisible"
+      width="400px"
+      center
+      :show-close="false"
+    >
+      <p>
+        您的会员已到期，请联系管理员重新续费后，
+        <br />才能访问教务系统
+      </p>
+      <p style="width: 100%;text-align: right;">管理员电话：138********</p>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" class="theme-color" @click="noticeDialogVisible=false">我知道了</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog
+      title="忘记密码"
+      :visible.sync="passwordDialogVisible"
+      width="400px"
+      center
+      :show-close="false"
+    >
+      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
+        <el-form-item prop="phone">
+          <el-input v-model="ruleForm.phone" placeholder="手机号">
+            <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
+          </el-input>
+        </el-form-item>
+        <el-row>
+          <el-col :span="14">
+            <el-form-item prop="random">
+              <el-input
+                placeholder="输入验证码"
+                v-model="ruleForm.random"
+                @keyup.enter.native="goNext('ruleForm')"
+              >
+                <el-button slot="prepend" icon="el-icon-lx-lock"></el-button>
+              </el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="10">
+            <el-button
+              :disabled="randomDisable"
+              :type="randomType"
+              class="theme-color"
+              @click="getRandom"
+              style="float: right;width: 117px;"
+            >{{randomText}}</el-button>
+          </el-col>
+        </el-row>
+
+        <el-button
+          type="text"
+          class="theme-font"
+          style="float: right;margin-bottom: 10px;"
+          @click="passwordDialogVisible=false;resetDialog=false"
+        >返回登录</el-button>
+        <div class="login-btn">
+          <el-button type="primary" class="theme-color" @click="goNext('ruleForm')">下一步</el-button>
+        </div>
+      </el-form>
+    </el-dialog>
+    <el-dialog title="忘记密码" :visible.sync="resetDialog" width="400px" center :show-close="false">
+      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
+        <el-form-item prop="password">
+          <el-input v-model="ruleForm.password" placeholder="请输入密码">
+            <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
+          </el-input>
+        </el-form-item>
+        <el-form-item prop="resetPassword">
+          <el-input
+            placeholder="请输入确认密码"
+            v-model="ruleForm.resetPassword"
+            @keyup.enter.native="goNext('ruleForm')"
+          >
+            <el-button slot="prepend" icon="el-icon-lx-lock"></el-button>
+          </el-input>
+        </el-form-item>
+        <el-button
+          type="text"
+          class="theme-font"
+          style="float: right;margin-bottom: 10px;"
+          @click="passwordDialogVisible=false;resetDialog=false"
+        >返回登录</el-button>
+        <div class="login-btn">
+          <el-button type="primary" class="theme-color" @click="resetPassword('ruleForm')">完成</el-button>
+        </div>
+      </el-form>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { setPriority } from "os";
+export default {
+  data: function() {
+    let checkUser = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error("请输入用户名"));
+      }
+      this.checkUser().then(rep => {
+        if (!rep) {
+          return callback(new Error("用户名不存在"));
+        }
+        return callback();
+      });
+    };
+    let checkPassword = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error("请输入密码"));
+      }
+      this.checkPassword().then(rep => {
+        if (!rep) {
+          return callback(new Error("密码错误"));
+        }
+        return callback();
+      });
+    };
+    let validatePass = (rule, value, callback) => {
+      if (value === "") {
+        callback(new Error("请再次输入密码"));
+      } else if (value !== this.ruleForm.password) {
+        callback(new Error("两次输入密码不一致!"));
+      } else {
+        callback();
+      }
+    };
+    return {
+      noticeDialogVisible: false,
+      passwordDialogVisible: false,
+      ifEnoughMoney: false,
+      randomDisable: false,
+      resetDialog: false,
+      randomText: "获取验证码",
+      randomType: "primary",
+      ruleForm: {
+        username: "",
+        password: "",
+        resetPassword: "",
+        phone: "",
+        random: ""
+      },
+      rules: {
+        username: [{ required: true, trigger: "blur", validator: checkUser }],
+        password: [
+          { required: true, trigger: "blur", validator: checkPassword }
+        ],
+        phone: [{ required: true, trigger: "blur", message: "请输入手机号" }],
+        random: [{ required: true, trigger: "blur", message: "请输入验证码" }],
+        resetPassword: [
+          { required: true, trigger: "blur", validator: validatePass }
+        ]
+      }
+    };
+  },
+  methods: {
+    toLogin() {},
+    submitForm(formName) {
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          localStorage.setItem("ms_username", this.ruleForm.username);
+          this.checkIfEnoughMoney().then(() => {
+            if (!this.ifEnoughMoney) {
+              this.noticeDialogVisible = true;
+            } else {
+                console.log(66)
+              this.$router.push("/dashboard");
+            }
+          });
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
+      });
+    },
+    checkIfEnoughMoney() {
+      return new Promise((resolve, reject) => {
+        if (this.ruleForm.username === "admin") {
+          this.ifEnoughMoney = true;
+        } else {
+          this.ifEnoughMoney = false;
+        }
+        resolve();
+      });
+    },
+    checkUser() {
+      return new Promise((resolve, reject) => {
+        resolve(true);
+      });
+    },
+    checkPassword() {
+      return new Promise((resolve, reject) => {
+        resolve(true);
+      });
+    },
+    getRandom() {
+      this.randomDisable = true;
+      let time = 60;
+      let self = this;
+      let set = setInterval(function() {
+        self.randomText = `${--time}秒后重新获取`;
+        self.randomType = "info";
+      }, 1000);
+      setTimeout(function() {
+        self.randomDisable = false;
+        self.randomType = "primary";
+        self.randomText = "重新获取验证码";
+        clearInterval(set);
+      }, 60 * 1000);
+    },
+    goNext(formName) {
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          this.resetDialog = true;
+          this.passwordDialogVisible = false;
+        } else {
+          console.log("error goNext!!");
+          return false;
+        }
+      });
+    },
+    resetPassword(formName) {
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+        } else {
+          console.log("error password!!");
+          return false;
+        }
+      });
+    },
+    forgetButton() {
+      this.passwordDialogVisible = true;
+      this.ruleForm = {
+        username: "",
+        password: "",
+        resetPassword: "",
+        phone: "",
+        random: ""
+      };
+    }
+  }
+};
+</script>
+
+<style scoped>
+.login-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-image: url(../../assets/img/login-bg.jpg);
+  background-size: 100%;
+}
+.ms-title {
+  width: 100%;
+  line-height: 40px;
+  text-align: center;
+  font-size: 16px;
+  color: #fff;
+  border-bottom: 1px solid #ddd;
+}
+.ms-login {
+  position: absolute;
+  left: 75%;
+  top: 50%;
+  width: 350px;
+  margin: -190px 0 0 -175px;
+  border-radius: 5px;
+  background: #fff;
+  overflow: hidden;
+}
+.ms-content {
+  padding: 30px 30px;
+  padding: 30px 30px 10px;
+}
+.login-btn {
+  text-align: center;
+}
+.login-btn button {
+  width: 100%;
+  height: 36px;
+  margin-bottom: 10px;
+}
+.login-tips {
+  font-size: 12px;
+  line-height: 30px;
+  color: #fff;
+}
+</style>
+<style>
+.el-dialog__header {
+  padding: 10px 20px 10px;
+}
+
+.el-dialog__title {
+  color: #fff;
+  font-size: 16px;
+}
+#app .el-button--info.is-disabled,
+#app .el-button--info.is-disabled:active,
+#app .el-button--info.is-disabled:focus,
+#app .el-button--info.is-disabled:hover {
+  color: #fff;
+  background-color: #c8c9cc;
+  border-color: #c8c9cc;
+}
+</style>
