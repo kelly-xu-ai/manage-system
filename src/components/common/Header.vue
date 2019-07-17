@@ -30,9 +30,9 @@
                         {{username}} <i class="el-icon-caret-bottom"></i>
                     </span>
                     <el-dropdown-menu slot="dropdown">
-                        <a href="http://blog.gdfengshuo.com/about/" target="_blank">
+                        <router-link to="/user">
                             <el-dropdown-item>个人中心</el-dropdown-item>
-                        </a>
+                        </router-link>
                         <el-dropdown-item divided  command="loginout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>

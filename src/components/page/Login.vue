@@ -1,8 +1,9 @@
+
 <template>
   <div class="login-wrap">
     <div class="ms-login" v-show="!(passwordDialogVisible||resetDialog)">
       <div class="ms-title theme-color">客户端登录</div>
-      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
+      <el-form :model="ruleForm" :rules="rules" ref="loginRuleForm" label-width="0px" class="ms-content">
         <el-form-item prop="username">
           <el-input v-model="ruleForm.username" placeholder="用户名">
             <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
@@ -25,7 +26,7 @@
           @click="forgetButton"
         >忘记密码</el-button>
         <div class="login-btn">
-          <el-button type="primary" class="theme-color" @click="submitForm('ruleForm')">登录</el-button>
+          <el-button type="primary" class="theme-color" @click="submitForm('loginRuleForm')">登录</el-button>
         </div>
       </el-form>
     </div>
@@ -52,7 +53,7 @@
       center
       :show-close="false"
     >
-      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
+      <el-form :model="ruleForm" :rules="rules" ref="randomRuleForm" label-width="0px" class="ms-content">
         <el-form-item prop="phone">
           <el-input v-model="ruleForm.phone" placeholder="手机号">
             <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
@@ -64,7 +65,7 @@
               <el-input
                 placeholder="输入验证码"
                 v-model="ruleForm.random"
-                @keyup.enter.native="goNext('ruleForm')"
+                @keyup.enter.native="goNext('randomRuleForm')"
               >
                 <el-button slot="prepend" icon="el-icon-lx-lock"></el-button>
               </el-input>
@@ -85,15 +86,15 @@
           type="text"
           class="theme-font"
           style="float: right;margin-bottom: 10px;"
-          @click="passwordDialogVisible=false;resetDialog=false"
+          @click="returnLogin()"
         >返回登录</el-button>
         <div class="login-btn">
-          <el-button type="primary" class="theme-color" @click="goNext('ruleForm')">下一步</el-button>
+          <el-button type="primary" class="theme-color" @click="goNext('randomRuleForm')">下一步</el-button>
         </div>
       </el-form>
     </el-dialog>
     <el-dialog title="忘记密码" :visible.sync="resetDialog" width="400px" center :show-close="false">
-      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
+      <el-form :model="ruleForm" :rules="rules" ref="passwordRuleForm" label-width="0px" class="ms-content">
         <el-form-item prop="password">
           <el-input v-model="ruleForm.password" placeholder="请输入密码">
             <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
@@ -115,7 +116,7 @@
           @click="passwordDialogVisible=false;resetDialog=false"
         >返回登录</el-button>
         <div class="login-btn">
-          <el-button type="primary" class="theme-color" @click="resetPassword('ruleForm')">完成</el-button>
+          <el-button type="primary" class="theme-color" @click="resetPassword('passwordRuleForm')">完成</el-button>
         </div>
       </el-form>
     </el-dialog>
@@ -185,6 +186,11 @@ export default {
       }
     };
   },
+  mounted() {
+    if (this.$route.query.ifForgetPassword) {
+      this.forgetButton()
+    }
+  },
   methods: {
     toLogin() {},
     submitForm(formName) {
@@ -195,7 +201,6 @@ export default {
             if (!this.ifEnoughMoney) {
               this.noticeDialogVisible = true;
             } else {
-                console.log(66)
               this.$router.push("/dashboard");
             }
           });
@@ -269,6 +274,14 @@ export default {
         phone: "",
         random: ""
       };
+    },
+    returnLogin(formName) {
+      this.passwordDialogVisible=false;
+      this.resetDialog=false;
+      /* this.$refs[formName].resetFields();
+      // this.$refs[formName].resetFields(); */
+       this.$refs["randomRuleForm"].resetFields();
+      // this.$refs["passwordRuleForm"].resetFields();
     }
   }
 };

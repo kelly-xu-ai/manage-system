@@ -107,6 +107,13 @@ export default new Router({
                 //     component: resolve => require(['../components/page/MainUser.vue'], resolve),
                 //     meta: { title: '主账号信息' }
                 // },
+                {
+                    path: '/user',
+                    component: resolve => require(['../components/page/User.vue'], resolve)
+                },{
+                    path: '/subUser',
+                    component: resolve => require(['../components/page/SubUser.vue'], resolve)
+                } 
             ]
         },
         {
