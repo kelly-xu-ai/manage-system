@@ -1,11 +1,16 @@
+
 <template>
   <section class="subuser">
     <el-button @click="addUser">添加账号</el-button>
+    <el-select v-model="value" placeholder="用户状态" size="mini" style="margin-left: 20px;">
+      <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"></el-option>
+    </el-select>
     <el-table :data="tableData" style="width: 100%;margin-top: 10px;">
+      <el-table-column prop="department" label="机构" align="center" label-class-name="theme-color"></el-table-column>
       <el-table-column prop="name" label="用户名" align="center" label-class-name="theme-color"></el-table-column>
       <el-table-column prop="phone" label="手机号" align="center" label-class-name="theme-color"></el-table-column>
-      <el-table-column prop="password" label="密码" align="center" label-class-name="theme-color"></el-table-column>
       <el-table-column prop="status" label="状态" align="center" label-class-name="theme-color"></el-table-column>
+      <el-table-column prop="dateLine" label="到期时间" align="center" label-class-name="theme-color"></el-table-column>
       <el-table-column
         fixed="right"
         label="设置"
@@ -14,6 +19,7 @@
         label-class-name="theme-color"
       >
         <template slot-scope="scope">
+          <el-button @click="lookDetail" type="text" size="small">详情</el-button>
           <el-button
             @click="lockUser"
             type="text"
@@ -40,22 +46,33 @@
       :total="1000"
       style="margin-top:20px;"
     ></el-pagination>
-    <el-dialog title="添加账号" :visible.sync="addDialog" width="400px" center>
-      <el-form :model="ruleForm" :rules="rules" ref="passwordRuleForm" class="ms-content">
-        <el-form-item prop="name">
-          <el-input v-model="ruleForm.name" placeholder="用户名">
-            <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
+    <el-dialog title="添加用户" :visible.sync="addDialog" width="400px" center>
+      <el-form :model="ruleForm" :rules="rules" ref="dateLineRuleForm" class="ms-content">
+        <el-form-item prop="department" label="机构名称">
+          <el-input v-model="ruleForm.name" placeholder="请输入">
           </el-input>
         </el-form-item>
-        <el-form-item prop="phone">
-          <el-input v-model="ruleForm.phone" placeholder="手机号">
-            <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
+        <el-form-item prop="name" label="用户名">
+          <el-input v-model="ruleForm.name" placeholder="请输入">
           </el-input>
         </el-form-item>
-        <el-form-item prop="password">
+        <el-form-item prop="phone" label="手机号">
+          <el-input v-model="ruleForm.phone" placeholder="请输入">
+          </el-input>
+        </el-form-item>
+        <el-form-item prop="password" label="密码">
           <el-input v-model="ruleForm.password" placeholder="请输入密码">
-            <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
           </el-input>
+        </el-form-item>
+        <el-form-item prop="dateLine" label="设置会员期限">
+          <el-select v-model="value" placeholder="请选择" style="width: 100%;">
+            <el-option
+              v-for="item in dateOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
         </el-form-item>
         <div class="login-btn" style="text-align:center;">
           <el-button type="primary" class="theme-color" @click="submitForm('passwordRuleForm')">确定</el-button>
@@ -83,36 +100,95 @@ export default {
     };
     return {
       addDialog: false,
+      value: "",
+      options: [
+        {
+          value: "正常",
+          label: "正常"
+        },
+        {
+          value: "已到期",
+          label: "已到期"
+        },
+        {
+          value: "冻结",
+          label: "冻结"
+        }
+      ],
+       dateOptions: [
+        {
+          value: "one",
+          label: "一天"
+        },
+        {
+          value: "week",
+          label: "一周"
+        },
+        {
+          value: "month",
+          label: "一个月"
+        },
+        {
+          value: "threeMonth",
+          label: "三个月"
+        },
+        {
+          value: "半年",
+          label: "半年"
+        },
+         {
+          value: "一年",
+          label: "一年"
+        },
+         {
+          value: "两年",
+          label: "两年"
+        },
+         {
+          value: "三年",
+          label: "三年"
+        },
+        {
+          value: "永久",
+          label: "永久"
+        }
+      ],
       tableData: [
         {
           phone: "22222",
           name: "王小虎",
-          password: "dddd",
-          status: "normal"
+          dateLine: "dddd",
+          status: "normal",
+          department: "北京蓝天幼儿园"
         },
         {
           phone: "444",
           name: "王小虎",
-          password: "cccc",
-          status: "normal"
+          dateLine: "cccc",
+          status: "normal",
+          department: "北京蓝天幼儿园"
         },
         {
           phone: "4555",
           name: "王小虎",
           password: "rrr",
-          status: "normal"
+          status: "normal",
+          department: "北京蓝天幼儿园"
         },
         {
           phone: "6666",
           name: "王小虎",
-          password: "cccc",
-          status: "normal"
+          dateLine: "cccc",
+          status: "normal",
+          department: "北京蓝天幼儿园"
         }
       ],
       ruleForm: {
+        department: "",
         name: "",
         password: "",
-        phone: ""
+        phone: "",
+        dateLine: ""
       },
       rules: {
         name: [{ required: true, trigger: "blur", validator: checkUser }],
@@ -141,7 +217,9 @@ export default {
       this.ruleForm = {
         name: row.name,
         password: row.password,
-        phone: row.phone
+        phone: row.phone,
+        department: row.department,
+        dateLine: row.dateLine
       };
       this.addDialog = true;
     },
@@ -177,10 +255,13 @@ export default {
       this.ruleForm = {
         name: "",
         password: "",
-        phone: ""
+        phone: "",
+        department: "",
+        dateLine: ""
       };
       this.addDialog = true;
     },
+    lookDetail() {},
     handleSizeChange(val) {
       console.log(`每页 ${val} 条`);
     },

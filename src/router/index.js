@@ -101,19 +101,20 @@ export default new Router({
                     path: '/donate',
                     component: resolve => require(['../components/page/Donate.vue'], resolve),
                     meta: { title: '支持作者' }
-                },
-                // {
-                //     path: '/mainuser',
-                //     component: resolve => require(['../components/page/MainUser.vue'], resolve),
-                //     meta: { title: '主账号信息' }
-                // },
-                {
+                },{
                     path: '/user',
                     component: resolve => require(['../components/page/User.vue'], resolve)
                 },{
                     path: '/subUser',
                     component: resolve => require(['../components/page/SubUser.vue'], resolve)
-                } 
+                },{
+                    path: '/userManage',
+                    component: resolve => require(['../components/page/UserManage.vue'], resolve)
+                },
+                {
+                    path: '/fileManage',
+                    component: resolve => require(['../components/page/FileManage.vue'], resolve)
+                }                 
             ]
         },
         {
