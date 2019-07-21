@@ -3,7 +3,13 @@
   <div class="login-wrap">
     <div class="ms-login" v-show="!(passwordDialogVisible||resetDialog)">
       <div class="ms-title theme-color">客户端登录</div>
-      <el-form :model="ruleForm" :rules="rules" ref="loginRuleForm" label-width="0px" class="ms-content">
+      <el-form
+        :model="ruleForm"
+        :rules="rules"
+        ref="loginRuleForm"
+        label-width="0px"
+        class="ms-content"
+      >
         <el-form-item prop="username">
           <el-input v-model="ruleForm.username" placeholder="用户名">
             <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
@@ -53,7 +59,13 @@
       center
       :show-close="false"
     >
-      <el-form :model="ruleForm" :rules="rules" ref="randomRuleForm" label-width="0px" class="ms-content">
+      <el-form
+        :model="ruleForm"
+        :rules="rules"
+        ref="randomRuleForm"
+        label-width="0px"
+        class="ms-content"
+      >
         <el-form-item prop="phone">
           <el-input v-model="ruleForm.phone" placeholder="手机号">
             <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
@@ -94,7 +106,13 @@
       </el-form>
     </el-dialog>
     <el-dialog title="忘记密码" :visible.sync="resetDialog" width="400px" center :show-close="false">
-      <el-form :model="ruleForm" :rules="rules" ref="passwordRuleForm" label-width="0px" class="ms-content">
+      <el-form
+        :model="ruleForm"
+        :rules="rules"
+        ref="passwordRuleForm"
+        label-width="0px"
+        class="ms-content"
+      >
         <el-form-item prop="password">
           <el-input v-model="ruleForm.password" placeholder="请输入密码">
             <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
@@ -116,7 +134,11 @@
           @click="passwordDialogVisible=false;resetDialog=false"
         >返回登录</el-button>
         <div class="login-btn">
-          <el-button type="primary" class="theme-color" @click="resetPassword('passwordRuleForm')">完成</el-button>
+          <el-button
+            type="primary"
+            class="theme-color"
+            @click="resetPassword('passwordRuleForm')"
+          >完成</el-button>
         </div>
       </el-form>
     </el-dialog>
@@ -125,6 +147,7 @@
 
 <script>
 import { setPriority } from "os";
+import { login, getUserInfo, getPhoneRandom } from "../../api/index";
 export default {
   data: function() {
     let checkUser = (rule, value, callback) => {
@@ -143,10 +166,10 @@ export default {
         return callback(new Error("请输入密码"));
       }
       this.checkPassword().then(rep => {
-        if (!rep) {
-          return callback(new Error("密码错误"));
+        if (rep.code === 0) {
+          return callback();
         }
-        return callback();
+        return callback(new Error(rep.msg));
       });
     };
     let validatePass = (rule, value, callback) => {
@@ -159,6 +182,9 @@ export default {
       }
     };
     return {
+      ifAdmin: false,
+      ifMain: false,
+      expirationDate: "",
       noticeDialogVisible: false,
       passwordDialogVisible: false,
       ifEnoughMoney: false,
@@ -187,11 +213,13 @@ export default {
     };
   },
   mounted() {
+    this.init();
     if (this.$route.query.ifForgetPassword) {
-      this.forgetButton()
+      this.forgetButton();
     }
   },
   methods: {
+    init() {},
     toLogin() {},
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
@@ -201,7 +229,7 @@ export default {
             if (!this.ifEnoughMoney) {
               this.noticeDialogVisible = true;
             } else {
-              this.$router.push("/dashboard");
+              this.$router.push("/user");
             }
           });
         } else {
@@ -212,13 +240,31 @@ export default {
     },
     checkIfEnoughMoney() {
       return new Promise((resolve, reject) => {
-        if (this.ruleForm.username === "admin") {
-          this.ifEnoughMoney = true;
-        } else {
-          this.ifEnoughMoney = false;
-        }
-        resolve();
+          getUserInfo()
+        .then(rs => {
+          if (rs.code !== 0) {
+            reject("查询用户信息失败");
+          }
+          this.ifAdmin = rs.data.user.admin;
+          this.ifMain = rs.data.user.main;
+          this.expirationDate = rs.data.user.expirationDate;
+          if (this.ifAdmin) {
+            this.ifEnoughMoney = true;
+          } else {
+            let curretTime = new Date();
+            if (new Date(Date.parse(curretTime)) > new Date(Date.parse(this.expirationDate))) {
+              this.ifEnoughMoney = false;
+            } else {
+              this.ifEnoughMoney = true;
+            }
+          }
+          resolve();
+        })
+        .catch(err => {
+          console.log(err, "查询用户信息失败");
+        });
       });
+    
     },
     checkUser() {
       return new Promise((resolve, reject) => {
@@ -227,7 +273,30 @@ export default {
     },
     checkPassword() {
       return new Promise((resolve, reject) => {
-        resolve(true);
+        login({
+          username: this.ruleForm.username,
+          password: this.ruleForm.password
+        })
+          .then(res => {
+            resolve(res);
+          })
+          .catch(err => {
+            reject(err);
+          });
+        // this.$axios({
+        //   method: "post",
+        //   url: "/api/login",
+        //   params: {
+        //     username: this.ruleForm.username,
+        //     password: this.ruleForm.password
+        //   }
+        // })
+        //   .then(res => {
+        //     resolve(res);
+        //   })
+        //   .catch(err => {
+        //     reject(err);
+        //   });
       });
     },
     getRandom() {
@@ -276,11 +345,11 @@ export default {
       };
     },
     returnLogin(formName) {
-      this.passwordDialogVisible=false;
-      this.resetDialog=false;
+      this.passwordDialogVisible = false;
+      this.resetDialog = false;
       /* this.$refs[formName].resetFields();
       // this.$refs[formName].resetFields(); */
-       this.$refs["randomRuleForm"].resetFields();
+      this.$refs["randomRuleForm"].resetFields();
       // this.$refs["passwordRuleForm"].resetFields();
     }
   }
