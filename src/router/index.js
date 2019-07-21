@@ -114,6 +114,10 @@ export default new Router({
                 {
                     path: '/fileManage',
                     component: resolve => require(['../components/page/FileManage.vue'], resolve)
+                },
+                {
+                    path: '/file',
+                    component: resolve => require(['../components/page/File.vue'], resolve)
                 }                 
             ]
         },

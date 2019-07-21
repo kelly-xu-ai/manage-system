@@ -29,3 +29,11 @@ export const getPhoneRandom = (query) => {
         params: query
     })
 }
+
+export const getFilelist= (query) => {
+    return request({
+        url: '/file/list',
+        method: 'post',
+        params: query
+    })
+}

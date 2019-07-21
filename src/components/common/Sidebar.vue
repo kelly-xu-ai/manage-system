@@ -49,6 +49,10 @@ export default {
       collapse: false,
       items: [
         {
+          index: "file",
+          title: "课件"
+        },
+        {
           index: "user",
           title: "主账号信息"
         },
@@ -63,22 +67,7 @@ export default {
         {
           index: "fileManage",
           title: "课件管理"
-        },
-       /*  {
-          icon: "el-icon-lx-warn",
-          index: "7",
-          title: "错误处理",
-          subs: [
-            {
-              index: "permission",
-              title: "权限测试"
-            },
-            {
-              index: "404",
-              title: "404页面"
-            }
-          ]
-        } */
+        }
       ]
     };
   },
