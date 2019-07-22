@@ -1,3 +1,4 @@
+
 import request from '../utils/request';
 
 export const fetchData = (query) => {
@@ -34,6 +35,14 @@ export const getFilelist= (query) => {
     return request({
         url: '/file/list',
         method: 'post',
+        params: query
+    })
+}
+
+export const getTreelist= (query) => {
+    return request({
+        url: '/system/category/treeData',
+        method: 'get',
         params: query
     })
 }

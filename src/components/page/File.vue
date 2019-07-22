@@ -1,38 +1,43 @@
+
 <template>
   <section class="subuser">
     <el-row>
-      <el-col
-        :span="6"
-        class="sidebar-el-menu el-menu"
-        style="background-color: rgb(50, 65, 87);height: 100%;"
-      >
-        <el-tree :data="treeList" :props="defaultProps" @node-click="handleNodeClick"></el-tree>
+      <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;">
+        <el-tree :data="treeList" :props="defaultProps" @node-click="handleNodeClick" class="tree"></el-tree>
       </el-col>
-      <el-col :span="18">
-        <div style="height: 100%;">
+      <el-col :span="20" style="height: 850px;;background: #fff;">
+        <div style="display: flex;flex-wrap: wrap;">
           <template v-for="(file, index) in fileData">
-            <div :key="index" style="float:left;margin-right:94px;">
-              <img :src="getIcon(file.type)" alt="file.fileName" style="width:79px;height: 102px;" />
-              <p>{{file.fileName}}</p>
+            <div :key="index" style="float:left;margin:30px;">
+              <img
+                :src="getIcon(file.type)"
+                alt="file.fileName"
+                class="fileImg"
+                @click="openFile(file.content)"
+              />
+              <p style="font: 12px;">{{file.fileName}}</p>
             </div>
           </template>
         </div>
-        <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          current-page.sync="10"
-          :page-size="100"
-          layout="total, prev, pager, next"
-          :total="1000"
-          style="margin-top:20px;"
-        ></el-pagination>
+        <div>
+          <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="pagination.currentPage"
+            :page-sizes="[10, 20, 30, 40]"
+            :page-size="pagination.size"
+            layout="total, sizes, prev, pager, next, jumper"
+            style="position: absolute;bottom: 50px;margin-left: 20px;"
+            :total="pagination.total"
+          ></el-pagination>
+        </div>
       </el-col>
     </el-row>
   </section>
 </template>
 
 <script>
-import { getFilelist } from "../../api/index.js";
+import { getFilelist, getTreelist } from "../../api/index.js";
 import pic from "../../assets/img/pic.jpeg";
 import dv from "../../assets/img/dv.jpeg";
 import ppt from "../../assets/img/ppt.jpeg";
@@ -44,66 +49,10 @@ export default {
     return {
       addDialog: false,
       fileData: [],
-      treeList: [
-        {
-          label: "一级 1",
-          children: [
-            {
-              label: "二级 1-1",
-              children: [
-                {
-                  label: "三级 1-1-1"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          label: "一级 2",
-          children: [
-            {
-              label: "二级 2-1",
-              children: [
-                {
-                  label: "三级 2-1-1"
-                }
-              ]
-            },
-            {
-              label: "二级 2-2",
-              children: [
-                {
-                  label: "三级 2-2-1"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          label: "一级 3",
-          children: [
-            {
-              label: "二级 3-1",
-              children: [
-                {
-                  label: "三级 3-1-1"
-                }
-              ]
-            },
-            {
-              label: "二级 3-2",
-              children: [
-                {
-                  label: "三级 3-2-1"
-                }
-              ]
-            }
-          ]
-        }
-      ],
+      treeList: [],
       defaultProps: {
         children: "children",
-        label: "label"
+        label: "categoryName"
       },
       iconList: {
         "0": pic,
@@ -111,23 +60,47 @@ export default {
         "2": ppt,
         "3": doc,
         "4": pdf
-      }
+      },
+      pagination: {
+        total: 0,
+        size: 10,
+        currentPage: 1
+      },
+      categoryId: 0
     };
   },
   components: {},
   mounted() {
-    this.getFileList();
+    this.getFileList(null, 1, 10);
+    this.getTreeList();
   },
   methods: {
+    getTreeList() {
+      getTreelist()
+        .then(rs => {
+          this.treeList = rs;
+          if (rs.length) {
+            this.categoryId = rs[0].categoryId;
+          }
+        })
+        .catch(err => {
+          this.$message({
+            type: "error",
+            message: rs.msg
+          });
+        });
+    },
     getFileList(categoryIds = 1, pageNum = 1, pageSize = 10) {
       return new Promise((resolve, reject) => {
-        // categoryIds: categoryIds ,
-        getFilelist({ pageNum: pageNum, pageSize: pageSize })
+        getFilelist({
+          categoryIds: categoryIds,
+          pageNum: pageNum,
+          pageSize: pageSize
+        })
           .then(rs => {
-            console.log(rs);
+            this.pagination.total = rs.total;
             if (rs.code === 0) {
               this.fileData = rs.rows;
-              console.log(this.fileData);
             } else {
               this.$message({
                 type: "error",
@@ -167,25 +140,54 @@ export default {
     addClass() {},
     remove() {},
     handleSizeChange(val) {
-      console.log(`每页 ${val} 条`);
+      this.pagination.size = val;
+      this.getFileList(
+        this.categoryId,
+        this.pagination.currentPage,
+        this.pagination.size
+      );
     },
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`);
+      this.pagination.currentPage = val;
+      this.getFileList(
+        this.categoryId,
+        this.pagination.currentPage,
+        this.pagination.size
+      );
     },
     handleSelectionChange(val) {
       this.multipleSelection = val;
     },
     handleNodeClick(data) {
       console.log(data);
+      this.categoryId = data.categoryId;
+      this.getFileList(
+        this.categoryId,
+        this.pagination.currentPage,
+        this.pagination.size
+      );
     },
     getIcon(type) {
       return this.iconList[type];
+    },
+    openFile(url) {
+      console.log(url);
+      window.open(url, "_blank");
     }
   }
 };
 </script>
 
 <style scoped>
+.fileImg {
+  width: 79px;
+  height: 102px;
+  cursor: pointer;
+}
+.tree {
+  height: 850px;
+  background: #d3dce6;
+}
 </style>
 <style>
 .el-dialog__title {
