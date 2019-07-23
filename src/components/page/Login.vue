@@ -113,7 +113,7 @@
         label-width="0px"
         class="ms-content"
       >
-        <el-form-item prop="password">
+        <el-form-item>
           <el-input v-model="ruleForm.password" placeholder="请输入密码">
             <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
           </el-input>
@@ -147,7 +147,14 @@
 
 <script>
 import { setPriority } from "os";
-import { login, getUserInfo, getPhoneRandom } from "../../api/index";
+import {
+  login,
+  getUserInfo,
+  getPhoneRandom,
+  sendMessage,
+  verifyCode,
+  forgetPwd
+} from "../../api/index";
 export default {
   data: function() {
     let checkUser = (rule, value, callback) => {
@@ -181,6 +188,36 @@ export default {
         callback();
       }
     };
+    let checkPhone = (rule, value, callback) => {
+      if (value === "") {
+        callback(new Error("请输入手机号"));
+      } else {
+        var myreg = /^[1][3,4,5,7,8][0-9]{9}$/;
+        if (!myreg.test(value)) {
+          callback(new Error("请输入正确的手机号"));
+        } else {
+          callback();
+        }
+      }
+    };
+    let checkRandom = (rule, value, callback) => {
+      if (value === "") {
+        callback(new Error("请输入验证码"));
+      } else {
+        verifyCode({phoneNumber: this.ruleForm.phone, code: value})
+          .then(rs => {
+            if (rs.code !== 0) {
+              callback(new Error(rs.msg));
+            } else {
+              callback();
+            }
+          })
+          .catch(err => {
+            console.log(err, "校验验证码失败");
+            callback(new Error(rs.msg));
+          });
+      }
+    };
     return {
       ifAdmin: false,
       ifMain: false,
@@ -204,11 +241,12 @@ export default {
         password: [
           { required: true, trigger: "blur", validator: checkPassword }
         ],
-        phone: [{ required: true, trigger: "blur", message: "请输入手机号" }],
-        random: [{ required: true, trigger: "blur", message: "请输入验证码" }],
+        phone: [{ required: true, trigger: "blur", validator: checkPhone }],
+        random: [{ required: true, trigger: "blur", validator: checkRandom }],
         resetPassword: [
           { required: true, trigger: "blur", validator: validatePass }
-        ]
+        ],
+        onePassword: [{ required: true, trigger: "blur", message: "请输入密码" }]
       }
     };
   },
@@ -224,12 +262,11 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          localStorage.setItem("ms_username", this.ruleForm.username);
           this.checkIfEnoughMoney().then(() => {
             if (!this.ifEnoughMoney) {
               this.noticeDialogVisible = true;
             } else {
-              this.$router.push("/user");
+              this.$router.push("/file");
             }
           });
         } else {
@@ -240,31 +277,38 @@ export default {
     },
     checkIfEnoughMoney() {
       return new Promise((resolve, reject) => {
-          getUserInfo()
-        .then(rs => {
-          if (rs.code !== 0) {
-            reject("查询用户信息失败");
-          }
-          this.ifAdmin = rs.data.user.admin;
-          this.ifMain = rs.data.user.main;
-          this.expirationDate = rs.data.user.expirationDate;
-          if (this.ifAdmin) {
-            this.ifEnoughMoney = true;
-          } else {
-            let curretTime = new Date();
-            if (new Date(Date.parse(curretTime)) > new Date(Date.parse(this.expirationDate))) {
-              this.ifEnoughMoney = false;
-            } else {
-              this.ifEnoughMoney = true;
+        getUserInfo()
+          .then(rs => {
+            if (rs.code !== 0) {
+              reject("查询用户信息失败");
+              this.$message({
+                type: "error",
+                message: rs.msg
+              });
             }
-          }
-          resolve();
-        })
-        .catch(err => {
-          console.log(err, "查询用户信息失败");
-        });
+            this.ifAdmin = rs.data.user.admin;
+            this.ifMain = rs.data.user.main;
+            this.expirationDate = rs.data.user.expirationDate;
+            localStorage.setItem("ms_username", rs.data.user.userName);
+            if (this.ifAdmin) {
+              this.ifEnoughMoney = true;
+            } else {
+              let curretTime = new Date();
+              if (
+                new Date(Date.parse(curretTime)) >
+                new Date(Date.parse(this.expirationDate))
+              ) {
+                this.ifEnoughMoney = false;
+              } else {
+                this.ifEnoughMoney = true;
+              }
+            }
+            resolve();
+          })
+          .catch(err => {
+            console.log(err, "查询用户信息失败");
+          });
       });
-    
     },
     checkUser() {
       return new Promise((resolve, reject) => {
@@ -283,20 +327,6 @@ export default {
           .catch(err => {
             reject(err);
           });
-        // this.$axios({
-        //   method: "post",
-        //   url: "/api/login",
-        //   params: {
-        //     username: this.ruleForm.username,
-        //     password: this.ruleForm.password
-        //   }
-        // })
-        //   .then(res => {
-        //     resolve(res);
-        //   })
-        //   .catch(err => {
-        //     reject(err);
-        //   });
       });
     },
     getRandom() {
@@ -313,21 +343,71 @@ export default {
         self.randomText = "重新获取验证码";
         clearInterval(set);
       }, 60 * 1000);
+      sendMessage({ phoneNumber: this.ruleForm.phone })
+        .then(rs => {
+          if (rs.code !== 0) {
+            this.$message({
+              type: "error",
+              message: rs.msg
+            });
+          } else {
+            this.$message({
+              type: "success",
+              message: rs.msg
+            });
+          }
+        })
+        .catch(err => {
+          console.log(err, "更新密码失败");
+          this.$message({
+            type: "error",
+            message: err
+          });
+        });
     },
     goNext(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
           this.resetDialog = true;
           this.passwordDialogVisible = false;
+          this.ruleForm.password = "";
         } else {
           console.log("error goNext!!");
           return false;
         }
+      /*   this.resetDialog = true;
+        this.passwordDialogVisible = false;
+        this.ruleForm.password = ""; */
       });
     },
     resetPassword(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
+           forgetPwd({
+            code: this.ruleForm.random.trim(),
+            newPassword: this.ruleForm.resetPassword.trim()
+          })
+            .then(rs => {
+              if (rs.code !== 0) {
+                this.$message({
+                  type: "error",
+                  message: rs.msg
+                });
+                this.$router.push("/login");
+              } else {
+                this.$message({
+                  type: "success",
+                  message: rs.msg
+                });
+              }
+            })
+            .catch(err => {
+              console.log(err, "更新忘记密码失败");
+              this.$message({
+                type: "error",
+                message: err
+              });
+            });
         } else {
           console.log("error password!!");
           return false;

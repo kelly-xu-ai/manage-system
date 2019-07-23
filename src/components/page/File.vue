@@ -5,7 +5,12 @@
       <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;">
         <el-tree :data="treeList" :props="defaultProps" @node-click="handleNodeClick" class="tree"></el-tree>
       </el-col>
-      <el-col :span="20" style="height: 850px;;background: #fff;">
+      <el-col
+        :span="20"
+        style="height: 850px;;background: #fff;"
+        v-loading="loading"
+        element-loading-text="拼命加载中"
+      >
         <div style="display: flex;flex-wrap: wrap;">
           <template v-for="(file, index) in fileData">
             <div :key="index" style="float:left;margin:30px;">
@@ -66,7 +71,8 @@ export default {
         size: 10,
         currentPage: 1
       },
-      categoryId: 0
+      categoryId: 0,
+      loading: false
     };
   },
   components: {},
@@ -92,6 +98,7 @@ export default {
     },
     getFileList(categoryIds = 1, pageNum = 1, pageSize = 10) {
       return new Promise((resolve, reject) => {
+        this.loading = true;
         getFilelist({
           categoryIds: categoryIds,
           pageNum: pageNum,
@@ -108,9 +115,11 @@ export default {
               });
               reject(rs.msg);
             }
+            this.loading = false;
           })
           .catch(err => {
             reject(err);
+            this.loading = false;
           });
       });
     },

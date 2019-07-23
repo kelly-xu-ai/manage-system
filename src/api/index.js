@@ -31,7 +31,7 @@ export const getPhoneRandom = (query) => {
     })
 }
 
-export const getFilelist= (query) => {
+export const getFilelist = (query) => {
     return request({
         url: '/file/list',
         method: 'post',
@@ -39,10 +39,82 @@ export const getFilelist= (query) => {
     })
 }
 
-export const getTreelist= (query) => {
+export const getTreelist = (query) => {
     return request({
         url: '/system/category/treeData',
         method: 'get',
+        params: query
+    })
+}
+
+export const checkPassword = (query) => {
+    return request({
+        url: '/system/user/checkPassword',
+        method: 'post',
+        params: query
+    })
+}
+
+export const updatePwd = (query) => {
+    return request({
+        url: '/system/user/updatePwd',
+        method: 'post',
+        params: query
+    })
+}
+
+export const sendMessage = (query) => {
+    return request({
+        url: '/captcha/sendMessage',
+        method: 'post',
+        params: query
+    })
+}
+
+export const verifyCode = (query) => {
+    return request({
+        url: '/captcha/verifyCode',
+        method: 'post',
+        params: query
+    })
+}
+
+export const forgetPwd = (query) => {
+    return request({
+        url: '/system/user/forgetPwd',
+        method: 'post',
+        params: query
+    })
+}
+
+export const getUserList = (query) => {
+    return request({
+        url: '/system/user/list',
+        method: 'post',
+        params: query
+    })
+}
+
+export const removeUser = (query) => {
+    return request({
+        url: '/system/user/remove',
+        method: 'post',
+        params: query
+    })
+}
+
+export const addUser = (query) => {
+    return request({
+        url: '/system/user/add',
+        method: 'post',
+        params: query
+    })
+}
+
+export const checkLoginNameUnique = (query) => {
+    return request({
+        url: '/system/user/checkLoginNameUnique',
+        method: 'post',
         params: query
     })
 }

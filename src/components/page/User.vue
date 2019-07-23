@@ -59,7 +59,7 @@
                 style="float:left;"
                 @click="confirmPassword('user')"
               >确定</el-button>
-              <el-button class="update-button" style="float:left;margin-left:30px;">取消</el-button>
+              <el-button class="update-button" style="float:left;margin-left:30px;" @click="ifShowReset=false;ifShow=false;oldPassword=''">取消</el-button>
             </el-form-item>
           </el-row>
           <el-row v-if="!ifShowReset">
@@ -85,7 +85,7 @@
                 style="float:left;"
                 @click="resetPassword('user')"
               >确定</el-button>
-              <el-button class="update-button" style="float:left;margin-left:30px;">取消</el-button>
+              <el-button class="update-button" style="float:left;margin-left:30px;" @click="ifShowReset=false;ifShow=false;oldPassword=''">取消</el-button>
             </el-form-item>
           </el-row>
         </el-form>
@@ -95,14 +95,18 @@
 </template>
 
 <script>
+import { getUserInfo, checkPassword, updatePwd } from "../../api/index";
 export default {
   data() {
-    let checkPassword = (rule, value, callback) => {
+    let checkPasswordFn = (rule, value, callback) => {
       if (!value) {
         return callback(new Error("请输入密码"));
       }
-      this.checkPassword().then(rep => {
-        if (!rep) {
+      if (this.oldPassword) {  // 判断是否需要检验
+        return callback();
+      }
+      checkPassword({ password: value }).then(rep => {
+        if (rep.code !== 0) {
           return callback(new Error("密码错误"));
         }
         return callback();
@@ -120,32 +124,54 @@ export default {
     return {
       rules: {
         password: [
-          { required: true, trigger: "blur", validator: checkPassword }
+          { required: true, trigger: "blur", validator: checkPasswordFn }
         ],
         resetPassword: [
           { required: true, trigger: "blur", validator: validatePass }
         ]
       },
       user: {
-        name: "樱桃小丸子",
-        phone: "13810745017",
-        endDate: "2020-03-21",
+        name: "",
+        phone: "",
+        endDate: "",
         password: "",
         resetPassword: ""
       },
       ifShow: false,
       ifShowReset: false,
-      placeholderText: "请输入当前登录密码"
+      placeholderText: "请输入当前登录密码",
+      oldPassword: ""
     };
   },
+  mounted() {
+    this.init();
+  },
   methods: {
+    init() {
+      getUserInfo()
+        .then(rs => {
+          if (rs.code !== 0) {
+            this.$message({
+              type: "error",
+              message: rs.msg
+            });
+          } else {
+            var userInfo = rs.data.user;
+            this.user.name = userInfo.userName;
+            this.user.phone = userInfo.phonenumber;
+            this.user.endDate = userInfo.expirationDate;
+          }
+        })
+        .catch(err => {
+          console.log(err, "查询用户信息失败");
+          this.$message({
+            type: "error",
+            message: err
+          });
+        });
+    },
     updatePassword() {
       this.ifShow = true;
-    },
-    checkPassword() {
-      return new Promise((resolve, reject) => {
-        resolve(true);
-      });
     },
     forgetButton() {
       this.$router.push({ path: "/login?ifForgetPassword=true" });
@@ -153,6 +179,32 @@ export default {
     resetPassword(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
+          updatePwd({
+            password: this.oldPassword.trim(),
+            newPassword: this.user.password.trim()
+          })
+            .then(rs => {
+              if (rs.code !== 0) {
+                this.$message({
+                  type: "error",
+                  message: rs.msg
+                });
+              } else {
+                this.$message({
+                  type: "success",
+                  message: rs.msg
+                });
+                this.fShowReset=false;
+                this.ifShow=false;
+              }
+            })
+            .catch(err => {
+              console.log(err, "更新密码失败");
+              this.$message({
+                type: "error",
+                message: err
+              });
+            });
         } else {
           console.log("error password!!");
           return false;
@@ -165,6 +217,7 @@ export default {
         if (valid) {
           self.ifShowReset = true;
           self.placeholderText = "请输入密码";
+          self.oldPassword = self.user.password;
           self.user.password = "";
         } else {
           console.log("error password!!");

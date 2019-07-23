@@ -1,11 +1,21 @@
+
 <template>
   <section class="subuser">
     <el-button @click="addUser">添加账号</el-button>
-    <el-table :data="tableData" style="width: 100%;margin-top: 10px;">
-      <el-table-column prop="name" label="用户名" align="center" label-class-name="theme-color"></el-table-column>
-      <el-table-column prop="phone" label="手机号" align="center" label-class-name="theme-color"></el-table-column>
-      <el-table-column prop="password" label="密码" align="center" label-class-name="theme-color"></el-table-column>
-      <el-table-column prop="status" label="状态" align="center" label-class-name="theme-color"></el-table-column>
+    <el-table
+      :data="tableData"
+      style="width: 100%;margin-top: 10px;"
+      v-loading="loading"
+      element-loading-text="拼命加载中"
+    >
+      <el-table-column prop="userName" label="用户名" align="center" label-class-name="theme-color"></el-table-column>
+      <el-table-column prop="phonenumber" label="手机号" align="center" label-class-name="theme-color"></el-table-column>
+      <el-table-column label="密码" align="center" label-class-name="theme-color">******</el-table-column>
+      <el-table-column label="状态" align="center" label-class-name="theme-color">
+        <template slot-scope="scope">
+          <span>{{ scope.row.delFlag===0 ? "正常":"停用" }}</span>
+        </template>
+      </el-table-column>
       <el-table-column
         fixed="right"
         label="设置"
@@ -27,35 +37,32 @@
             v-if="scope.row.status !== 'normal'"
           >恢复账号</el-button>
           <el-button @click="changeUser(scope.row)" type="text" size="small">修改账号</el-button>
-          <el-button type="text" size="small" @click="deleteUser">删除</el-button>
+          <el-button type="text" size="small" @click="deleteUser(scope.row.userId)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      current-page.sync="10"
-      :page-size="100"
-      layout="total, prev, pager, next"
-      :total="1000"
-      style="margin-top:20px;"
-    ></el-pagination>
+    <div>
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="pagination.currentPage"
+        :page-sizes="[10, 20, 30, 40]"
+        :page-size="pagination.size"
+        layout="total, sizes, prev, pager, next, jumper"
+        style="position: absolute;bottom: 50px;margin-left: 20px;"
+        :total="pagination.total"
+      ></el-pagination>
+    </div>
     <el-dialog title="添加账号" :visible.sync="addDialog" width="400px" center>
       <el-form :model="ruleForm" :rules="rules" ref="passwordRuleForm" class="ms-content">
         <el-form-item prop="name">
-          <el-input v-model="ruleForm.name" placeholder="用户名">
-            <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
-          </el-input>
+          <el-input v-model="ruleForm.name" placeholder="用户名"></el-input>
         </el-form-item>
         <el-form-item prop="phone">
-          <el-input v-model="ruleForm.phone" placeholder="手机号">
-            <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
-          </el-input>
+          <el-input v-model="ruleForm.phone" placeholder="手机号"></el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input v-model="ruleForm.password" placeholder="请输入密码">
-            <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
-          </el-input>
+          <el-input v-model="ruleForm.password" placeholder="请输入密码"></el-input>
         </el-form-item>
         <div class="login-btn" style="text-align:center;">
           <el-button type="primary" class="theme-color" @click="submitForm('passwordRuleForm')">确定</el-button>
@@ -67,6 +74,12 @@
 </template>
 
 <script>
+import {
+  getUserList,
+  removeUser,
+  addUser,
+  checkLoginNameUnique
+} from "../../api/index.js";
 export default {
   name: "subuser",
   data() {
@@ -74,41 +87,35 @@ export default {
       if (!value) {
         return callback(new Error("请输入用户名"));
       }
-      this.checkUser().then(rep => {
-        if (!rep) {
-          return callback(new Error("用户名不存在"));
+      callback();
+    };
+    let checkPhone = (rule, value, callback) => {
+      if (value === "") {
+        callback(new Error("请输入手机号"));
+      } else {
+        var myreg = /^[1][3,4,5,7,8][0-9]{9}$/;
+        if (!myreg.test(value)) {
+          callback(new Error("请输入正确的手机号"));
+        } else {
+          checkLoginNameUnique({ loginName: value })
+            .then(rs => {
+              console.log(rs);
+              if (rs !== 0) {
+                callback(new Error('手机号已存在'));
+              } else {
+                callback();
+              }
+            })
+            .catch(err => {
+              console.log(err, "校验手机号是否存在失败");
+              callback(new Error(rs.msg));
+            });
         }
-        return callback();
-      });
+      }
     };
     return {
       addDialog: false,
-      tableData: [
-        {
-          phone: "22222",
-          name: "王小虎",
-          password: "dddd",
-          status: "normal"
-        },
-        {
-          phone: "444",
-          name: "王小虎",
-          password: "cccc",
-          status: "normal"
-        },
-        {
-          phone: "4555",
-          name: "王小虎",
-          password: "rrr",
-          status: "normal"
-        },
-        {
-          phone: "6666",
-          name: "王小虎",
-          password: "cccc",
-          status: "normal"
-        }
-      ],
+      tableData: [],
       ruleForm: {
         name: "",
         password: "",
@@ -117,8 +124,14 @@ export default {
       rules: {
         name: [{ required: true, trigger: "blur", validator: checkUser }],
         password: [{ required: true, trigger: "blur", message: "请输入密码" }],
-        phone: [{ required: true, trigger: "blur", message: "请输入手机号" }]
-      }
+        phone: [{ required: true, trigger: "blur", validator: checkPhone }]
+      },
+      pagination: {
+        total: 0,
+        size: 10,
+        currentPage: 1
+      },
+      loading: false
     };
   },
   components: {},
@@ -126,9 +139,35 @@ export default {
     this.getUserList();
   },
   methods: {
-    getUserList() {
+    inti() {
       return new Promise((resolve, reject) => {
         resolve();
+      });
+    },
+    getUserList(pageNum = 1, pageSize = 10) {
+      return new Promise((resolve, reject) => {
+        this.loading = true;
+        getUserList({
+          pageNum: pageNum,
+          pageSize: pageSize
+        })
+          .then(rs => {
+            this.pagination.total = rs.total;
+            if (rs.code === 0) {
+              this.tableData = rs.rows;
+            } else {
+              this.$message({
+                type: "error",
+                message: rs.msg
+              });
+              reject(rs.msg);
+            }
+            this.loading = false;
+          })
+          .catch(err => {
+            reject(err);
+            this.loading = false;
+          });
       });
     },
     lockUser() {
@@ -145,17 +184,35 @@ export default {
       };
       this.addDialog = true;
     },
-    deleteUser() {
+    deleteUser(userId) {
       this.$confirm("确定要删除吗，该账号删除之后将无妨登录访问系统", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
         .then(() => {
-          this.$message({
-            type: "success",
-            message: "删除成功!"
-          });
+          removeUser({ ids: userId })
+            .then(rs => {
+              if (rs.code === 0) {
+                this.$message({
+                  type: "success",
+                  message: "删除成功!"
+                });
+                this.getUserList();
+              } else {
+                this.$message({
+                  type: "error",
+                  message: rs.msg
+                });
+              }
+            })
+            .catch(err => {
+              console.log(err);
+              this.$message({
+                type: "error",
+                message: "删除用户失败"
+              });
+            });
         })
         .catch(() => {
           this.$message({
@@ -167,6 +224,32 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
+          addUser({
+            userName: this.ruleForm.name,
+            loginName: this.ruleForm.phone,
+            password: this.ruleForm.password
+          })
+            .then(rs => {
+              if (rs.code === 0) {
+                this.$message({
+                  type: "success",
+                  message: "添加成功!"
+                });
+                this.getUserList();
+              } else {
+                this.$message({
+                  type: "error",
+                  message: rs.msg
+                });
+              }
+            })
+            .catch(err => {
+              console.log(err);
+              this.$message({
+                type: "error",
+                message: "添加用户失败"
+              });
+            });
         } else {
           console.log("error submit!!");
           return false;
@@ -182,10 +265,12 @@ export default {
       this.addDialog = true;
     },
     handleSizeChange(val) {
-      console.log(`每页 ${val} 条`);
+      this.pagination.size = val;
+      this.getUserList(this.pagination.currentPage, this.pagination.size);
     },
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`);
+      this.pagination.currentPage = val;
+      this.getUserList(this.pagination.currentPage, this.pagination.size);
     }
   }
 };

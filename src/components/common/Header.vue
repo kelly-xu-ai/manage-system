@@ -1,10 +1,11 @@
+
 <template>
     <div class="header">
         <!-- 折叠按钮 -->
         <div class="collapse-btn" @click="collapseChage">
             <i class="el-icon-menu"></i>
         </div>
-        <div class="logo">后台管理系统</div>
+        <div class="logo" @click="toFile" style=" cursor: pointer;">艺腾悠悠</div>
         <div class="header-right">
             <div class="header-user-con">
                 <!-- 全屏显示 -->
@@ -12,15 +13,6 @@
                     <el-tooltip effect="dark" :content="fullscreen?`取消全屏`:`全屏`" placement="bottom">
                         <i class="el-icon-rank"></i>
                     </el-tooltip>
-                </div>
-                <!-- 消息中心 -->
-                <div class="btn-bell">
-                    <el-tooltip effect="dark" :content="message?`有${message}条未读消息`:`消息中心`" placement="bottom">
-                        <router-link to="/tabs">
-                            <i class="el-icon-bell"></i>
-                        </router-link>
-                    </el-tooltip>
-                    <span class="btn-bell-badge" v-if="message"></span>
                 </div>
                 <!-- 用户头像 -->
                 <div class="user-avator"><img src="../../assets/img/img.jpg"></div>
@@ -31,7 +23,7 @@
                     </span>
                     <el-dropdown-menu slot="dropdown">
                         <router-link to="/user">
-                            <el-dropdown-item>个人中心</el-dropdown-item>
+                            <el-dropdown-item>个人资料</el-dropdown-item>
                         </router-link>
                         <el-dropdown-item divided  command="loginout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
@@ -47,7 +39,7 @@
             return {
                 collapse: false,
                 fullscreen: false,
-                name: 'linxin',
+                name: '',
                 message: 2
             }
         },
@@ -96,6 +88,9 @@
                     }
                 }
                 this.fullscreen = !this.fullscreen;
+            },
+            toFile() {
+                this.$router.push("/file")
             }
         },
         mounted(){

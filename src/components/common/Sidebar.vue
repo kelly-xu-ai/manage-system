@@ -1,3 +1,4 @@
+
 <template>
   <div class="sidebar">
     <el-menu
@@ -30,8 +31,8 @@
             </template>
           </el-submenu>
         </template>
-        <template v-else>
-          <el-menu-item :index="item.index" :key="item.index">
+        <template>
+          <el-menu-item :index="item.index" :key="item.index" v-show="!item.subs && item.show">
             <i :class="item.icon"></i>
             <span slot="title">{{ item.title }}</span>
           </el-menu-item>
@@ -43,6 +44,7 @@
 
 <script>
 import bus from "../common/bus";
+import { fail } from "assert";
 export default {
   data() {
     return {
@@ -50,25 +52,31 @@ export default {
       items: [
         {
           index: "file",
-          title: "课件"
+          title: "课件",
+          show: true
         },
         {
           index: "user",
-          title: "主账号信息"
+          title: "主账号信息",
+          show: false
         },
         {
           index: "subUser",
-          title: "子账号信息"
+          title: "子账号管理",
+          show: false
         },
         {
           index: "userManage",
-          title: "用户管理"
+          title: "用户管理",
+          show: false
         },
         {
           index: "fileManage",
-          title: "课件管理"
+          title: "课件管理",
+          show: false
         }
-      ]
+      ],
+       ifShow: false
     };
   },
   computed: {
@@ -81,6 +89,21 @@ export default {
     bus.$on("collapse", msg => {
       this.collapse = msg;
     });
+  },
+  mounted() {
+    
+  },
+  watch: {
+    "$route.path": {
+      handler(newValue, oldValue) {
+        this.ifShow = newValue === "/file" ? false : true;
+        this.items[1].show = this.ifShow; 
+        this.items[2].show = this.ifShow; 
+        this.items[0].show = !this.ifShow; 
+        console.log(this.ifshow)
+      }
+    },
+    deep: true
   }
 };
 </script>
