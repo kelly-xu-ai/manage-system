@@ -68,12 +68,12 @@ export default {
         {
           index: "userManage",
           title: "用户管理",
-          show: false
+          show: true
         },
         {
           index: "fileManage",
           title: "课件管理",
-          show: false
+          show: true
         }
       ],
        ifShow: false
@@ -96,11 +96,11 @@ export default {
   watch: {
     "$route.path": {
       handler(newValue, oldValue) {
-        this.ifShow = newValue === "/file" ? false : true;
+       /*  this.ifShow = newValue === "/file" ? false : true;
         this.items[1].show = this.ifShow; 
         this.items[2].show = this.ifShow; 
         this.items[0].show = !this.ifShow; 
-        console.log(this.ifshow)
+        console.log(this.ifshow) */
       }
     },
     deep: true

@@ -118,3 +118,20 @@ export const checkLoginNameUnique = (query) => {
         params: query
     })
 }
+
+
+export const editUser = (query) => {
+    return request({
+        url: '/system/user/edit',
+        method: 'post',
+        params: query
+    })
+}
+
+export const addCategory = (query) => {
+    return request({
+        url: '/system/category/add',
+        method: 'post',
+        params: query
+    })
+}
