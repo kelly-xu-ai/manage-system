@@ -135,3 +135,19 @@ export const addCategory = (query) => {
         params: query
     })
 }
+
+export const removeFile = (query) => {
+    return request({
+        url: '/file/remove',
+        method: 'post',
+        params: query
+    })
+}
+
+export const changeFile = (query) => {
+    return request({
+        url: '/file/change',
+        method: 'post',
+        params: query
+    })
+}

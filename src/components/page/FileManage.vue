@@ -3,7 +3,7 @@
   <section class="fileManage">
     <el-row>
       <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;">
-        <el-tree :data="treeList" :props="defaultProps" @node-click="handleNodeClick" class="tree"></el-tree>
+        <el-tree :data="treeList" :props="defaultProps" @node-click="handleNodeClick" class="tree" :default-expand-all="true" :highlight-current="true"></el-tree>
       </el-col>
       <el-col
         :span="20"
@@ -12,24 +12,30 @@
         element-loading-text="拼命加载中"
       >
         <div style="margin: 10px;">
-          <!-- <el-button
-            @click="addFile"
-            type="primary"
-            class="theme-color"
-            :disabled="updateDisabled"
-          >上传文件</el-button>-->
-
-          <!-- <el-upload
+          <el-button style="float:left;" @click="batchDelete">删除</el-button>
+          <el-button style="float:left;margin-right: 20px;margin-left: 20px;" @click="batchMove">移动</el-button>
+          <el-upload
             class="upload-demo"
-            action="/file/add"
-            :on-preview="handlePreview"
-            :on-remove="handleRemove"
+            style="float:left;margin-right:20px;"
+            :action="uploadUrl"
+            :on-success="handleAvatarSuccess"
+            :before-upload="handleBeforeUpload"
             :data="updataData"
+            :disabled="addClassDisabled"
+            :show-file-list="false"
           >
-            <el-button size="small" type="primary">上传文件</el-button>
-          </el-upload> -->
+            <el-button size="small" type="primary" :disabled="addClassDisabled">上传文件</el-button>
+          </el-upload>
 
-          <el-button @click="addClassDialog=true" :disabled="addClassDisabled">添加分类</el-button>
+          <el-button
+            @click="addClassDialog=true"
+            :disabled="addClassDisabled"
+            style="float:left;margin-right:10px;"
+          >添加分类</el-button>
+          <span v-if="addClassDisabled">
+            <i class="el-icon-warning" style="color:#F7BA2A;margin-top:7px;"></i>
+            <span style="font-size:12px;color:#475669;margin-left:5px;">先点击左侧树节点选择分类</span>
+          </span>
         </div>
         <el-table
           :data="fileData"
@@ -64,8 +70,13 @@
           >
             <template slot-scope="scope">
               <el-button @click="changeFile(scope.row)" type="text" size="small">修改</el-button>
-              <el-button @click="remove(scope.row)" type="text" size="small">移动</el-button>
-              <el-button type="text" size="small" @click="deleteFile" style="color: #FF4949">删除</el-button>
+              <el-button @click="moveFile(scope.row.id)" type="text" size="small">移动</el-button>
+              <el-button
+                type="text"
+                size="small"
+                @click="deleteFile(scope.row.id)"
+                style="color: #FF4949"
+              >删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -106,11 +117,35 @@
         </div>
       </el-form>
     </el-dialog>
+    <el-dialog title="移动到" :visible.sync="batchChange" width="400px" center>
+      <el-tree
+        :data="treeList"
+        :props="defaultProps"
+        @node-click="getToChange"
+        :default-expand-all="true"
+        :highlight-current="true"
+      ></el-tree>
+      <div class="login-btn" style="text-align:center;">
+        <el-button
+          type="primary"
+          class="theme-color"
+          @click="changeFile(tochangeId)"
+          :disabled="tochangeId===''"
+        >确定</el-button>
+        <el-button @click="batchChange=false">取消</el-button>
+      </div>
+    </el-dialog>
   </section>
 </template>
 
 <script>
-import { getFilelist, getTreelist, addCategory } from "../../api/index.js";
+import {
+  getFilelist,
+  getTreelist,
+  addCategory,
+  removeFile,
+  changeFile
+} from "../../api/index.js";
 import pic from "../../assets/img/pic.jpeg";
 import dv from "../../assets/img/dv.jpeg";
 import ppt from "../../assets/img/ppt.jpeg";
@@ -146,7 +181,7 @@ export default {
         size: 10,
         currentPage: 1
       },
-      categoryId: 0,
+      categoryId: null,
       loading: false,
       updateDisabled: true,
       addClassDisabled: true,
@@ -154,7 +189,15 @@ export default {
         categoryName: "",
         orderNum: ""
       },
-      updataData: {}
+      updataData: {
+        type: 1,
+        categoryIds: 1
+      },
+      uploadUrl: "/api/file/add",
+      multipleSelection: [],
+      batchChange: false,
+      tochangeId: "",
+      originId: ""
     };
   },
   components: {},
@@ -168,7 +211,6 @@ export default {
         .then(rs => {
           this.treeList = rs;
           if (rs.length) {
-            this.categoryId = rs[0].categoryId;
           }
         })
         .catch(err => {
@@ -178,7 +220,7 @@ export default {
           });
         });
     },
-    getFileList(categoryIds = 1, pageNum = 1, pageSize = 10) {
+    getFileList(categoryIds = null, pageNum = 1, pageSize = 10) {
       return new Promise((resolve, reject) => {
         this.loading = true;
         getFilelist({
@@ -205,23 +247,62 @@ export default {
           });
       });
     },
-    changeFile(row) {},
-    deleteFile() {
+    deleteFile(id) {
       this.$confirm("确定要删除吗", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
         .then(() => {
-          this.$message({
-            type: "success",
-            message: "删除成功!"
-          });
+          removeFile({ ids: id })
+            .then(rs => {
+              if (rs.code === 0) {
+                this.$message({
+                  type: "success",
+                  message: "删除成功!"
+                });
+                this.getFileList(this.categoryId, 1, this.pagination.size);
+              } else {
+                this.$message({
+                  type: "error",
+                  message: rs.msg
+                });
+              }
+            })
+            .catch(err => {
+              this.$message({
+                type: "error",
+                message: "删除失败"
+              });
+            });
         })
         .catch(() => {
           this.$message({
             type: "info",
             message: "已取消删除"
+          });
+        });
+    },
+    changeFile(toid) {
+      changeFile({ ids: this.originId, cIds: toid })
+        .then(rs => {
+          if (rs.code === 0) {
+            this.$message({
+              type: "success",
+              message: "移动成功!"
+            });
+            this.getFileList(this.categoryId, 1, this.pagination.size);
+          } else {
+            this.$message({
+              type: "error",
+              message: rs.msg
+            });
+          }
+        })
+        .catch(err => {
+          this.$message({
+            type: "error",
+            message: "删除失败"
           });
         });
     },
@@ -238,7 +319,7 @@ export default {
               if (rs.code === 0) {
                 this.mounted();
                 this.$message({
-                  type: "error",
+                  type: "success",
                   message: "添加成功"
                 });
               } else {
@@ -283,7 +364,6 @@ export default {
       this.multipleSelection = val;
     },
     handleNodeClick(data) {
-      console.log(data);
       this.currentNode = data;
       this.updateDisabled = false;
       this.addClassDisabled = false;
@@ -293,6 +373,7 @@ export default {
         this.pagination.currentPage,
         this.pagination.size
       );
+      this.updataData.categoryIds = data.categoryId;
     },
     getIcon(type) {
       return this.iconList[type];
@@ -301,17 +382,94 @@ export default {
       console.log(url);
       window.open(url, "_blank");
     },
-    handleSelectionChange(val) {
-      this.multipleSelection = val;
-    },
     handleRemove(file, fileList) {
       console.log(file, fileList);
     },
-    handlePreview(file) {
-      console.log(file);
+    handleAvatarSuccess(res, file) {
+      console.log(res);
+      if (res.code == 0) {
+        this.$message({
+          type: "success",
+          message: "添加成功"
+        });
+        this.getFileList(
+          this.categoryId,
+          this.pagination.currentPage,
+          this.pagination.size
+        );
+      } else {
+        this.$message({
+          type: "error",
+          message: "添加失败"
+        });
+      }
+    },
+    handleBeforeUpload(file) {
+      let fileType = file.type.split("/");
+      console.log(fileType);
+      if (fileType[0] === "image") {
+        this.updataData.type = 0;
+      } else if (fileType[0] === "video") {
+        this.updataData.type = 1;
+      } else if (fileType[0] === "application") {
+        if (fileType[1].includes("pdf")) {
+          this.updataData.type = 2;
+        }
+        if (fileType[1].includes("document")) {
+          this.updataData.type = 3;
+        }
+        if (fileType[1].includes("presentation")) {
+          this.updataData.type = 4;
+        }
+      } else {
+        this.$message({
+          type: "error",
+          message: "添加的文件类型不支持"
+        });
+        return false;
+      }
+    },
+    batchDelete() {
+      if (!this.multipleSelection.length) {
+        this.$message({
+          type: "warning",
+          message: "请先勾选要删除的课件!"
+        });
+      } else {
+        this.deleteFile(getids());
+      }
+    },
+    batchMove() {
+      this.tochangeId = "";
+      if (!this.multipleSelection.length) {
+        this.$message({
+          type: "warning",
+          message: "请先勾选要移动的课件!"
+        });
+      } else {
+        this.batchChange = true;
+        this.originId = this.getids();
+      }
+    },
+    getToChange(node) {
+      this.tochangeId = node.categoryId;
+    },
+    getids() {
+      let idList = [];
+      this.multipleSelection.forEach(val => {
+        idList.push(val.id);
+      });
+      return idList.join(",");
+    },
+    moveFile(id) {
+      this.tochangeId = "";
+      this.originId = id;
+      this.batchChange = true;
     }
   }
 };
+
+// 课件分类有问题
 </script>
 
 <style scoped>
@@ -334,5 +492,10 @@ export default {
 .el-dialog__title {
   color: #fff;
   font-size: 16px;
+}
+.el-upload {
+  width: 80px;
+  height: 33px;
+  border: none;
 }
 </style>
