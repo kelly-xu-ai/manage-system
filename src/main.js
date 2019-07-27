@@ -18,7 +18,6 @@ Vue.use(VueI18n);
 Vue.use(ElementUI, {
     size: 'small'
 });
-axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 Vue.prototype.$axios = axios;
 
 const i18n = new VueI18n({

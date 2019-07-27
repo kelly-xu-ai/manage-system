@@ -101,7 +101,11 @@ export default {
       this.fullscreen = !this.fullscreen;
     },
     toFile() {
-      this.$router.push("/file");
+      if (this.ifAdmin === 'true') {
+        this.$router.push('userManage');
+      }else {
+        this.$router.push("/file");
+      }
     }
   },
   created() {

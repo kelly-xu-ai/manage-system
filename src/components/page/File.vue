@@ -18,7 +18,7 @@
                 :src="getIcon(file.type)"
                 alt="file.fileName"
                 class="fileImg"
-                @click="openFile(file.content)"
+                @click="openFile(file.url)"
               />
               <p style="font: 12px;">{{file.fileName}}</p>
             </div>

@@ -151,3 +151,19 @@ export const changeFile = (query) => {
         params: query
     })
 }
+
+export const deleteClass = (query) => {
+    return request({
+        url: '/system/category/remove',
+        method: 'post',
+        params: query
+    })
+}
+
+export const updateFile = (query) => {
+    return request({
+        url: '/file/edit',
+        method: 'post',
+        params: query
+    })
+}

@@ -204,7 +204,7 @@ export default {
       if (value === "") {
         callback(new Error("请输入验证码"));
       } else {
-        verifyCode({phoneNumber: this.ruleForm.phone, code: value})
+        verifyCode({ phoneNumber: this.ruleForm.phone, code: value })
           .then(rs => {
             if (rs.code !== 0) {
               callback(new Error(rs.msg));
@@ -246,7 +246,9 @@ export default {
         resetPassword: [
           { required: true, trigger: "blur", validator: validatePass }
         ],
-        onePassword: [{ required: true, trigger: "blur", message: "请输入密码" }]
+        onePassword: [
+          { required: true, trigger: "blur", message: "请输入密码" }
+        ]
       }
     };
   },
@@ -266,7 +268,11 @@ export default {
             if (!this.ifEnoughMoney) {
               this.noticeDialogVisible = true;
             } else {
-              this.$router.push("/file");
+              if (this.ifAdmin) {
+                this.$router.push("/userManage");
+              } else {
+                this.$router.push("/file");
+              }
             }
           });
         } else {
@@ -280,6 +286,9 @@ export default {
         getUserInfo()
           .then(rs => {
             if (rs.code !== 0) {
+              if (rs.code === 401) {
+                this.$router.push("/login");
+              }
               reject("查询用户信息失败");
               this.$message({
                 type: "error",
@@ -377,7 +386,7 @@ export default {
           console.log("error goNext!!");
           return false;
         }
-      /*   this.resetDialog = true;
+        /*   this.resetDialog = true;
         this.passwordDialogVisible = false;
         this.ruleForm.password = ""; */
       });
@@ -385,7 +394,7 @@ export default {
     resetPassword(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-           forgetPwd({
+          forgetPwd({
             code: this.ruleForm.random.trim(),
             newPassword: this.ruleForm.resetPassword.trim()
           })

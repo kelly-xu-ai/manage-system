@@ -12,12 +12,7 @@
           :highlight-current="true"
         ></el-tree>
       </el-col>
-      <el-col
-        :span="20"
-        style="height: 850px;;background: #fff;"
-        v-loading="loading"
-        element-loading-text="拼命加载中"
-      >
+      <el-col :span="20" style="height: 850px;;background: #fff;" v-loading="loading">
         <div style="margin: 10px;">
           <el-button style="float:left;" @click="batchDelete">删除</el-button>
           <el-button style="float:left;margin-right: 20px;margin-left: 20px;" @click="batchMove">移动</el-button>
@@ -30,15 +25,20 @@
             :data="updataData"
             :disabled="addClassDisabled"
             :show-file-list="false"
+            :on-error="handleUploadError"
           >
             <el-button size="small" type="primary" :disabled="addClassDisabled">上传文件</el-button>
           </el-upload>
-
           <el-button
-            @click="addClassDialog=true"
+            @click="addClassDialog=true;categoryName='';orderNum=''"
             :disabled="addClassDisabled"
             style="float:left;margin-right:10px;"
           >添加分类</el-button>
+          <el-button
+            @click="removeClass"
+            :disabled="addClassDisabled"
+            style="float:left;margin-right:10px;"
+          >删除分类</el-button>
           <span v-if="addClassDisabled">
             <i class="el-icon-warning" style="color:#F7BA2A;margin-top:7px;"></i>
             <span style="font-size:12px;color:#475669;margin-left:5px;">先点击左侧树节点选择分类</span>
@@ -76,7 +76,7 @@
             label-class-name="theme-color"
           >
             <template slot-scope="scope">
-              <el-button @click="changeFile(scope.row)" type="text" size="small">修改</el-button>
+              <el-button @click="editFileClick(scope.row.id, scope.row.fileName)" type="text" size="small">修改</el-button>
               <el-button @click="moveFile(scope.row.id)" type="text" size="small">移动</el-button>
               <el-button
                 type="text"
@@ -142,6 +142,23 @@
         <el-button @click="batchChange=false">取消</el-button>
       </div>
     </el-dialog>
+    <el-dialog title="文件修改" :visible.sync="updateFileDialog" width="400px" center>
+      <el-form
+        :model="fileForm"
+        :rules="rules"
+        ref="fileRuleForm"
+        label-width="100px"
+        class="ms-content"
+      >
+        <el-form-item label="文件名" prop="fileName">
+          <el-input v-model="fileForm.fileName" placeholder="请输入名称"></el-input>
+        </el-form-item>
+      </el-form>
+      <div style="width: 100%;text-align:center;">
+        <el-button @click="editFile('fileRuleForm')" type="primary" class="theme-color">确定</el-button>
+        <el-button @click="updateFileDialog=false">取消</el-button>
+      </div>
+    </el-dialog>
   </section>
 </template>
 
@@ -151,7 +168,9 @@ import {
   getTreelist,
   addCategory,
   removeFile,
-  changeFile
+  changeFile,
+  deleteClass,
+  updateFile
 } from "../../api/index.js";
 import pic from "../../assets/img/pic.jpeg";
 import dv from "../../assets/img/dv.jpeg";
@@ -168,10 +187,19 @@ export default {
       rules: {
         categoryName: [
           { required: true, trigger: "blur", message: "请输入分类名称" }
+        ],
+        fileName: [
+          { required: true, trigger: "blur", message: "请输入文件名称" }
         ]
       },
       fileData: [],
-      treeList: [],
+      treeList: [
+        {
+          categoryId: 0,
+          categoryName: "分类管理",
+          children: []
+        }
+      ],
       defaultProps: {
         children: "children",
         label: "categoryName"
@@ -204,7 +232,12 @@ export default {
       multipleSelection: [],
       batchChange: false,
       tochangeId: "",
-      originId: ""
+      originId: "",
+      fileForm: {
+        id: "",
+        fileName: ""
+      },
+      updateFileDialog: false
     };
   },
   components: {},
@@ -219,14 +252,12 @@ export default {
     getTreeList() {
       getTreelist()
         .then(rs => {
-          this.treeList = rs;
-          if (rs.length) {
-          }
+          this.treeList[0].children = rs;
         })
         .catch(err => {
           this.$message({
             type: "error",
-            message: rs.msg
+            message: "查询分类报错"
           });
         });
     },
@@ -234,7 +265,7 @@ export default {
       return new Promise((resolve, reject) => {
         this.loading = true;
         getFilelist({
-          categoryIds: categoryIds,
+          categoryIds: categoryIds === 0 ? "" : categoryIds,
           pageNum: pageNum,
           pageSize: pageSize
         })
@@ -324,7 +355,7 @@ export default {
       this.$refs[formName].validate(valid => {
         if (valid) {
           addCategory({
-            parentId: this.currentNode.parentId,
+            categoryId: this.currentNode.categoryId,
             categoryName: this.classForm.categoryName,
             orderNum: this.classForm.orderNum ? this.classForm.orderNum : 0
           })
@@ -400,6 +431,7 @@ export default {
     },
     handleAvatarSuccess(res, file) {
       console.log(res);
+      this.loading = false;
       if (res.code == 0) {
         this.$message({
           type: "success",
@@ -418,29 +450,43 @@ export default {
       }
     },
     handleBeforeUpload(file) {
-      let fileType = file.type.split("/");
-      console.log(fileType);
-      if (fileType[0] === "image") {
+      this.loading = true;
+      let nameList = file.name.split(".");
+      let type = nameList[nameList.length - 1];
+      let type0 = ["jpg", "png", "jpeg", "gif"];
+      let type1 = ["mp4", "ogg"];
+      let type2 = ["ppt", "pptx"];
+      let type3 = ["doc", "docx"];
+      let type4 = ["pdf"];
+      let status = false;
+      if (type0.includes(type)) {
         this.updataData.type = 0;
-      } else if (fileType[0] === "video") {
+        status = true;
+      }
+      if (type1.includes(type)) {
         this.updataData.type = 1;
-      } else if (fileType[0] === "application") {
-        if (fileType[1].includes("pdf")) {
-          this.updataData.type = 2;
-        }
-        if (fileType[1].includes("document")) {
-          this.updataData.type = 3;
-        }
-        if (fileType[1].includes("presentation")) {
-          this.updataData.type = 4;
-        }
-      } else {
+        status = true;
+      }
+      if (type2.includes(type)) {
+        this.updataData.type = 2;
+        status = true;
+      }
+      if (type3.includes(type)) {
+        this.updataData.type = 3;
+        status = true;
+      }
+      if (type4.includes(type)) {
+        this.updataData.type = 4;
+        status = true;
+      }
+      if (!status) {
         this.$message({
           type: "error",
-          message: "添加的文件类型不支持"
+          message:
+            "您上传的文件格式不支持，文件支持格式（jpg,png,jpeg,gif,mp4,ogg,ppt,pptx,doc,docx,pdf）"
         });
-        return false;
       }
+      return status;
     },
     batchDelete() {
       if (!this.multipleSelection.length) {
@@ -478,6 +524,85 @@ export default {
       this.tochangeId = "";
       this.originId = id;
       this.batchChange = true;
+    },
+    removeClass() {
+      this.$confirm("确定要删除吗", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          deleteClass({ categoryId: this.categoryId })
+            .then(rs => {
+              if (rs.code === 0) {
+                this.$message({
+                  type: "success",
+                  message: "删除成功!"
+                });
+                this.init();
+              } else {
+                this.$message({
+                  type: "error",
+                  message: rs.msg
+                });
+              }
+            })
+            .catch(err => {
+              this.$message({
+                type: "error",
+                message: "删除失败"
+              });
+            });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+    handleUploadError() {
+      this.loading = false;
+    },
+    editFileClick(id, fileName) {
+      this.fileForm.id = id;
+      this.fileForm.fileName = fileName;
+      this.updateFileDialog = true;
+    },
+    editFile(formName) {
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          updateFile({
+            fileName: this.fileForm.fileName,
+            id: this.fileForm.id
+          })
+            .then(rs => {
+              if (rs.code === 0) {
+                this.init();
+                this.$message({
+                  type: "success",
+                  message: "修改成功"
+                });
+                this.updateFileDialog = false;
+              } else {
+                this.$message({
+                  type: "error",
+                  message: rs.msg
+                });
+                this.updateFileDialog = false;
+              }
+            })
+            .catch(err => {
+              this.$message({
+                type: "error",
+                message: "添加文件失败"
+              });
+            });
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
+      });
     }
   }
 };

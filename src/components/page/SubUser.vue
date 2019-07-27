@@ -10,7 +10,7 @@
       element-loading-text="拼命加载中"
     >
       <el-table-column prop="userName" label="用户名" align="center" label-class-name="theme-color"></el-table-column>
-      <el-table-column prop="phonenumber" label="手机号" align="center" label-class-name="theme-color"></el-table-column>
+      <el-table-column prop="loginName" label="手机号" align="center" label-class-name="theme-color"></el-table-column>
       <el-table-column label="密码" align="center" label-class-name="theme-color">******</el-table-column>
       <el-table-column label="状态" align="center" label-class-name="theme-color">
         <template slot-scope="scope">
