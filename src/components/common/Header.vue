@@ -27,7 +27,7 @@
             <i class="el-icon-caret-bottom"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <router-link to="/user">
+            <router-link to="/user" v-if="ifAdmin==='false'&&ifMain==='true'">
               <el-dropdown-item>个人资料</el-dropdown-item>
             </router-link>
             <el-dropdown-item divided command="loginout">退出登录</el-dropdown-item>
@@ -39,13 +39,17 @@
 </template>
 <script>
 import bus from "../common/bus";
+import { setTimeout } from "timers";
+// import { getUserInfo } from "../../api/index";
 export default {
   data() {
     return {
       collapse: false,
       fullscreen: false,
       name: "",
-      message: 2
+      message: 2,
+      ifAdmin: false,
+      ifMain: false
     };
   },
   computed: {
@@ -59,6 +63,8 @@ export default {
     handleCommand(command) {
       if (command == "loginout") {
         localStorage.removeItem("ms_username");
+        localStorage.removeItem("ifAdmin");
+        localStorage.removeItem("ifMain");
         this.$router.push("/login");
       }
     },
@@ -98,10 +104,15 @@ export default {
       this.$router.push("/file");
     }
   },
+  created() {
+  
+  },
   mounted() {
     if (document.body.clientWidth < 1500) {
       this.collapseChage();
     }
+    this.ifAdmin = localStorage.getItem("ifAdmin");
+    this.ifMain = localStorage.getItem("ifMain");
   }
 };
 </script>

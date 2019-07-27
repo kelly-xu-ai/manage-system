@@ -1,7 +1,8 @@
 
 <template>
   <section class="subuser">
-    <el-button @click="addUser">添加账号</el-button>
+    <el-button @click="addUser" v-if="ifShowFun">添加账号</el-button>
+    <router-link to="/userManage" v-if="!ifShowFun" style="color: #20a0ff;">返回</router-link>
     <el-table
       :data="tableData"
       style="width: 100%;margin-top: 10px;"
@@ -13,7 +14,7 @@
       <el-table-column label="密码" align="center" label-class-name="theme-color">******</el-table-column>
       <el-table-column label="状态" align="center" label-class-name="theme-color">
         <template slot-scope="scope">
-          <span>{{ scope.row.delFlag==0 ? "正常":"停用" }}</span>
+          <span>{{ getUserStatus(scope.row.delFlag)}}</span>
         </template>
       </el-table-column>
       <el-table-column
@@ -22,6 +23,7 @@
         width="500"
         align="center"
         label-class-name="theme-color"
+        v-if="ifShowFun"
       >
         <template slot-scope="scope">
           <el-button
@@ -37,7 +39,12 @@
             v-if="scope.row.delFlag == 1"
           >恢复账号</el-button>
           <el-button @click="changeUser(scope.row)" type="text" size="small">修改账号</el-button>
-          <el-button type="text" size="small" @click="deleteUser(scope.row.userId)">删除</el-button>
+          <el-button
+            type="text"
+            size="small"
+            @click="deleteUser(scope.row.userId)"
+            style="color: #FF4949"
+          >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -135,12 +142,20 @@ export default {
       },
       loading: false,
       oldPhone: "",
-      titleTxt: "添加账号"
+      titleTxt: "添加账号",
+      ifShowFun: true
     };
   },
   components: {},
   mounted() {
-    this.getUserList();
+    console.log(this.$route.query.parentId, "papapp");
+    if (this.$route.query.parentId) {
+      this.getUserList(1, 10, this.$route.query.parentId);
+      this.ifShowFun = false;
+    } else {
+      this.getUserList();
+      this.ifShowFun = true;
+    }
   },
   methods: {
     inti() {
@@ -148,12 +163,13 @@ export default {
         resolve();
       });
     },
-    getUserList(pageNum = 1, pageSize = 10) {
+    getUserList(pageNum = 1, pageSize = 10, parentId = null) {
       return new Promise((resolve, reject) => {
         this.loading = true;
         getUserList({
           pageNum: pageNum,
-          pageSize: pageSize
+          pageSize: pageSize,
+          parentId: parentId
         })
           .then(rs => {
             this.pagination.total = rs.total;
@@ -204,7 +220,7 @@ export default {
     initUser(row) {
       editUser({
         userId: row.userId,
-        delFlag: 1
+        delFlag: 0
       })
         .then(rs => {
           if (rs.code === 0) {
@@ -366,6 +382,23 @@ export default {
     handleCurrentChange(val) {
       this.pagination.currentPage = val;
       this.getUserList(this.pagination.currentPage, this.pagination.size);
+    },
+    getUserStatus(delFlag) {
+      let status = "";
+      switch (Number(delFlag)) {
+        case 0:
+          status = "正常";
+          break;
+        case 1:
+          status = "冻结";
+          break;
+        case 2:
+          status = "已到期";
+          break;
+        default:
+          status = "未知";
+      }
+      return status;
     }
   }
 };

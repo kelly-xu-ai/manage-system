@@ -45,6 +45,7 @@
 <script>
 import bus from "../common/bus";
 import { fail } from "assert";
+import { getUserInfo } from "../../api/index";
 export default {
   data() {
     return {
@@ -68,15 +69,17 @@ export default {
         {
           index: "userManage",
           title: "用户管理",
-          show: true
+          show: false
         },
         {
           index: "fileManage",
           title: "课件管理",
-          show: true
+          show: false
         }
       ],
-       ifShow: false
+      ifShow: false,
+      ifAdmin: "", // 因为从localstoge是字符串
+      ifMain: ""
     };
   },
   computed: {
@@ -91,16 +94,35 @@ export default {
     });
   },
   mounted() {
-    
+    this.ifAdmin = localStorage.getItem("ifAdmin");
+    this.ifMain = localStorage.getItem("ifMain");
+    if (this.ifAdmin === "true") {
+      this.items[0].show = false;
+      this.items[1].show = false; // 主账号信息
+      this.items[2].show = false; // 子账号管理
+      this.items[3].show = true;
+      this.items[4].show = true;
+    } else {
+      this.items[3].show = false; // 用户管理
+      this.items[4].show = false; // 课件管理
+      this.items[0].show = true; // 课件
+    }
   },
   watch: {
     "$route.path": {
       handler(newValue, oldValue) {
-       /*  this.ifShow = newValue === "/file" ? false : true;
-        this.items[1].show = this.ifShow; 
-        this.items[2].show = this.ifShow; 
-        this.items[0].show = !this.ifShow; 
-        console.log(this.ifshow) */
+        if (
+          this.ifAdmin === "false" &&
+          this.ifMain === "true" &&
+          newValue === "/user"
+        ) {
+          this.items[1].show = true;
+          this.items[2].show = true;
+          // 主账号点击个人中心只显示主账号信息，子账号管理
+          this.items[0].show = false;
+          this.items[3].show = false;
+          this.items[4].show = false;
+        }
       }
     },
     deep: true

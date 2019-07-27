@@ -181,7 +181,7 @@ export default {
     },
     openFile(url) {
       console.log(url);
-      window.open(url, "_blank");
+      window.open('/profile/' + url, "_blank");
     }
   }
 };

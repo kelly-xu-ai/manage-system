@@ -19,7 +19,7 @@
     >
       <el-table-column prop="organization" label="机构" align="center" label-class-name="theme-color"></el-table-column>
       <el-table-column prop="userName" label="用户名" align="center" label-class-name="theme-color"></el-table-column>
-      <el-table-column prop="phonenumber" label="手机号" align="center" label-class-name="theme-color"></el-table-column>
+      <el-table-column prop="loginName" label="手机号" align="center" label-class-name="theme-color"></el-table-column>
       <el-table-column label="状态" align="center" label-class-name="theme-color">
         <template slot-scope="scope">
           <span>{{ scope.row.delFlag==0 ? "正常":"停用" }}</span>
@@ -39,7 +39,7 @@
         label-class-name="theme-color"
       >
         <template slot-scope="scope">
-          <el-button @click="lookDetail(scope.row)" type="text" size="small">详情</el-button>
+          <el-button @click="lookSubList(scope.row.userId)" type="text" size="small">子账号列表</el-button>
           <el-button
             @click="lockUser(scope.row)"
             type="text"
@@ -54,7 +54,12 @@
           >恢复</el-button>
 
           <el-button @click="changeUser(scope.row)" type="text" size="small">修改</el-button>
-          <el-button type="text" size="small" @click="deleteUser(scope.row.userId)">删除</el-button>
+          <el-button
+            type="text"
+            size="small"
+            @click="deleteUser(scope.row.userId)"
+            style="color: #FF4949"
+          >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -82,10 +87,11 @@
         <el-form-item prop="password" label="密码">
           <el-input v-model="ruleForm.password" placeholder="请输入密码"></el-input>
         </el-form-item>
-        <el-form-item prop="dateLine" label="设置会员期限">
+        <el-form-item prop="expirationDate" label="设置会员期限">
           <el-date-picker
-            v-model="ruleForm.dateLine"
+            v-model="ruleForm.expirationDate"
             type="date"
+            value-format="yyyy-MM-dd HH:mm:ss"
             placeholder="选择日期"
             :picker-options="pickerOptions0"
             style="width: 100%;"
@@ -117,7 +123,8 @@ import {
   editUser
 } from "../../api/index.js";
 export default {
-  name: "subuser",
+  name: "userManage",
+  components: {},
   data() {
     let checkUser = (rule, value, callback) => {
       if (!value) {
@@ -215,12 +222,15 @@ export default {
         name: "",
         password: "",
         phone: "",
-        dateLine: ""
+        expirationDate: ""
       },
       rules: {
         name: [{ required: true, trigger: "blur", validator: checkUser }],
         password: [{ required: true, trigger: "blur", message: "请输入密码" }],
-        phone: [{ required: true, trigger: "blur", validator: checkPhone }]
+        phone: [{ required: true, trigger: "blur", validator: checkPhone }],
+        expirationDate: [
+          { required: true, trigger: "blur", message: "请选择时间" }
+        ]
       },
       pagination: {
         total: 0,
@@ -298,7 +308,7 @@ export default {
     initUser(row) {
       editUser({
         userId: row.userId,
-        delFlag: 1
+        delFlag: 0
       })
         .then(rs => {
           if (rs.code === 0) {
@@ -323,15 +333,19 @@ export default {
         });
     },
     changeUser(row) {
+      this.rules.name[0].required = false;
+      this.rules.password[0].required = false;
+      this.rules.phone[0].required = false;
+      this.rules.expirationDate[0].required = false;
       this.titleTxt = "修改账号";
-      this.oldPhone = row.phonenumber;
+      this.oldPhone = row.loginName;
       this.ruleForm = {
         name: row.userName,
         password: row.password,
-        phone: row.phonenumber,
+        phone: row.loginName,
         userId: row.userId,
         organization: row.organization,
-        expirationDate: row.dateLine
+        expirationDate: row.expirationDate
       };
       this.addDialog = true;
     },
@@ -382,7 +396,7 @@ export default {
               password: this.ruleForm.password,
               phonenumber: this.ruleForm.phone,
               organization: this.ruleForm.organization,
-              expirationDate: this.ruleForm.dateLine
+              expirationDate: this.ruleForm.expirationDate
             })
               .then(rs => {
                 if (rs.code === 0) {
@@ -453,12 +467,16 @@ export default {
         password: "",
         phone: "",
         organization: "",
-        dateLine: ""
+        expirationDate: ""
       };
       this.addDialog = true;
+      this.rules.name[0].required = true;
+      this.rules.password[0].required = true;
+      this.rules.phone[0].required = true;
+      this.rules.expirationDate[0].required = true;
     },
-    lookDetail(row) {
-     
+    lookSubList(id) {
+      this.$router.push(`/subUser?parentId=${id}`);
     },
     handleSizeChange(val) {
       this.pagination.size = val;
@@ -473,6 +491,7 @@ export default {
     }
   }
 };
+// 处理时间格式
 </script>
 
 <style scoped>

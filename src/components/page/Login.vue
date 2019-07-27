@@ -290,6 +290,8 @@ export default {
             this.ifMain = rs.data.user.main;
             this.expirationDate = rs.data.user.expirationDate;
             localStorage.setItem("ms_username", rs.data.user.userName);
+            localStorage.setItem("ifAdmin", rs.data.user.admin);
+            localStorage.setItem("ifMain", rs.data.user.main);
             if (this.ifAdmin) {
               this.ifEnoughMoney = true;
             } else {

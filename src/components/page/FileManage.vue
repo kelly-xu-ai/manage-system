@@ -3,7 +3,14 @@
   <section class="fileManage">
     <el-row>
       <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;">
-        <el-tree :data="treeList" :props="defaultProps" @node-click="handleNodeClick" class="tree" :default-expand-all="true" :highlight-current="true"></el-tree>
+        <el-tree
+          :data="treeList"
+          :props="defaultProps"
+          @node-click="handleNodeClick"
+          class="tree"
+          :default-expand-all="true"
+          :highlight-current="true"
+        ></el-tree>
       </el-col>
       <el-col
         :span="20"
@@ -202,10 +209,13 @@ export default {
   },
   components: {},
   mounted() {
-    this.getFileList(null, 1, 10);
-    this.getTreeList();
+    this.init();
   },
   methods: {
+    init() {
+      this.getFileList(null, 1, 10);
+      this.getTreeList();
+    },
     getTreeList() {
       getTreelist()
         .then(rs => {
@@ -292,11 +302,13 @@ export default {
               message: "移动成功!"
             });
             this.getFileList(this.categoryId, 1, this.pagination.size);
+            this.batchChange = false;
           } else {
             this.$message({
               type: "error",
               message: rs.msg
             });
+            this.batchChange = false;
           }
         })
         .catch(err => {
@@ -304,6 +316,7 @@ export default {
             type: "error",
             message: "删除失败"
           });
+          this.batchChange = false;
         });
     },
     addFile() {},
@@ -317,21 +330,21 @@ export default {
           })
             .then(rs => {
               if (rs.code === 0) {
-                this.mounted();
+                this.init();
                 this.$message({
                   type: "success",
                   message: "添加成功"
                 });
+                this.addClassDialog = false;
               } else {
                 this.$message({
                   type: "error",
                   message: rs.msg
                 });
-                reject(rs.msg);
+                this.addClassDialog = false;
               }
             })
             .catch(err => {
-              reject(err);
               this.$message({
                 type: "error",
                 message: "添加分类失败"
@@ -373,7 +386,7 @@ export default {
         this.pagination.currentPage,
         this.pagination.size
       );
-      this.updataData.categoryIds = data.categoryId;
+      this.updataData.categoryIds = `${data.ancestors},${data.categoryId}`;
     },
     getIcon(type) {
       return this.iconList[type];
@@ -452,7 +465,7 @@ export default {
       }
     },
     getToChange(node) {
-      this.tochangeId = node.categoryId;
+      this.tochangeId = `${node.ancestors},${node.categoryId}`;
     },
     getids() {
       let idList = [];
