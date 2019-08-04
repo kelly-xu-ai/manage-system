@@ -29,7 +29,6 @@ service.interceptors.response.use(response => {
     if(response.status === 200){
         let oldLoginName = vm && vm.oldLoginName;
         let newLoginName = getcookie('loginName');
-        debugger
         if (oldLoginName && newLoginName && oldLoginName !== newLoginName) {
             window.location.href= '/'
         } 
