@@ -167,3 +167,11 @@ export const updateFile = (query) => {
         params: query
     })
 }
+
+export const updateClass = (query) => {
+    return request({
+        url: '/system/category/edit',
+        method: 'post',
+        params: query
+    })
+}

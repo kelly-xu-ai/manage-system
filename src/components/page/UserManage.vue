@@ -73,7 +73,7 @@
       style="position: absolute;bottom: 50px;margin-left: 20px;"
       :total="pagination.total"
     ></el-pagination>
-    <el-dialog :title="titleTxt" :visible.sync="addDialog" width="400px" center>
+    <el-dialog :title="titleTxt" :visible.sync="addDialog" width="400px" center :close-on-click-modal="false">
       <el-form :model="ruleForm" :rules="rules" ref="passwordRuleForm" class="ms-content">
         <el-form-item prop="organization" label="机构名称">
           <el-input v-model="ruleForm.organization" placeholder="请输入"></el-input>
@@ -127,13 +127,16 @@ export default {
   components: {},
   data() {
     let checkUser = (rule, value, callback) => {
-      if (!value) {
+      if (!value && this.rules.name[0].required) {
         return callback(new Error("请输入用户名"));
       }
       callback();
     };
     let checkPhone = (rule, value, callback) => {
-      if (value === "") {
+      if (!this.rules.phone[0].required && !value) {
+        return callback();
+      }
+      if (!value) {
         callback(new Error("请输入手机号"));
       } else {
         var myreg = /^[1][3,4,5,7,8][0-9]{9}$/;

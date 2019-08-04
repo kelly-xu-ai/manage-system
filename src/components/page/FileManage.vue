@@ -30,10 +30,15 @@
             <el-button size="small" type="primary" :disabled="addClassDisabled">上传文件</el-button>
           </el-upload>
           <el-button
-            @click="addClassDialog=true;categoryName='';orderNum=''"
+            @click="addClassShow"
             :disabled="addClassDisabled"
             style="float:left;margin-right:10px;"
           >添加分类</el-button>
+          <el-button
+            @click="updataClass"
+            :disabled="addClassDisabled"
+            style="float:left;margin-right:10px;"
+          >修改分类</el-button>
           <el-button
             @click="removeClass"
             :disabled="addClassDisabled"
@@ -76,7 +81,11 @@
             label-class-name="theme-color"
           >
             <template slot-scope="scope">
-              <el-button @click="editFileClick(scope.row.id, scope.row.fileName)" type="text" size="small">修改</el-button>
+              <el-button
+                @click="editFileClick(scope.row.id, scope.row.fileName)"
+                type="text"
+                size="small"
+              >修改</el-button>
               <el-button @click="moveFile(scope.row.id)" type="text" size="small">移动</el-button>
               <el-button
                 type="text"
@@ -101,7 +110,7 @@
         </div>
       </el-col>
     </el-row>
-    <el-dialog title="添加分类" :visible.sync="addClassDialog" width="400px" center>
+    <el-dialog :title="classTitle" :visible.sync="addClassDialog" width="400px" center>
       <el-form
         :model="classForm"
         :rules="rules"
@@ -170,7 +179,8 @@ import {
   removeFile,
   changeFile,
   deleteClass,
-  updateFile
+  updateFile,
+  updateClass
 } from "../../api/index.js";
 import pic from "../../assets/img/pic.jpeg";
 import dv from "../../assets/img/dv.jpeg";
@@ -222,7 +232,8 @@ export default {
       addClassDisabled: true,
       classForm: {
         categoryName: "",
-        orderNum: ""
+        orderNum: "",
+        categoryId: ""
       },
       updataData: {
         type: 1,
@@ -237,7 +248,8 @@ export default {
         id: "",
         fileName: ""
       },
-      updateFileDialog: false
+      updateFileDialog: false,
+      classTitle: ""
     };
   },
   components: {},
@@ -354,33 +366,65 @@ export default {
     addClass(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          addCategory({
-            categoryId: this.currentNode.categoryId,
-            categoryName: this.classForm.categoryName,
-            orderNum: this.classForm.orderNum ? this.classForm.orderNum : 0
-          })
-            .then(rs => {
-              if (rs.code === 0) {
-                this.init();
-                this.$message({
-                  type: "success",
-                  message: "添加成功"
-                });
-                this.addClassDialog = false;
-              } else {
+          if (this.classTitle === "添加分类") {
+            addCategory({
+              categoryId: this.currentNode.categoryId,
+              categoryName: this.classForm.categoryName,
+              orderNum: this.classForm.orderNum ? this.classForm.orderNum : 0
+            })
+              .then(rs => {
+                if (rs.code === 0) {
+                  this.init();
+                  this.$message({
+                    type: "success",
+                    message: "添加成功"
+                  });
+                  this.addClassDialog = false;
+                } else {
+                  this.$message({
+                    type: "error",
+                    message: rs.msg
+                  });
+                  this.addClassDialog = false;
+                }
+              })
+              .catch(err => {
                 this.$message({
                   type: "error",
-                  message: rs.msg
+                  message: "添加分类失败"
                 });
-                this.addClassDialog = false;
-              }
-            })
-            .catch(err => {
-              this.$message({
-                type: "error",
-                message: "添加分类失败"
               });
-            });
+          } else if (this.classTitle === "修改分类") {
+            updateClass({
+              categoryId: this.classForm.categoryId,
+              categoryName: this.classForm.categoryName,
+              orderNum: this.classForm.orderNum ? this.classForm.orderNum : 0
+            })
+              .then(rs => {
+                if (rs.code === 0) {
+                  this.init();
+                  this.$message({
+                    type: "success",
+                    message: "编辑成功"
+                  });
+                  this.addClassDialog = false;
+                  this.currentNode.categoryName = this.classForm.categoryName;
+                  this.currentNode.orderNum = this.classForm.orderNum;
+                } else {
+                  this.$message({
+                    type: "error",
+                    message: rs.msg
+                  });
+                  this.addClassDialog = false;
+                }
+              })
+              .catch(err => {
+                this.$message({
+                  type: "error",
+                  message: "编辑分类失败"
+                });
+              });
+          }
         } else {
           console.log("error submit!!");
           return false;
@@ -495,7 +539,7 @@ export default {
           message: "请先勾选要删除的课件!"
         });
       } else {
-        this.deleteFile(getids());
+        this.deleteFile(this.getids());
       }
     },
     batchMove() {
@@ -603,6 +647,19 @@ export default {
           return false;
         }
       });
+    },
+    addClassShow() {
+      this.addClassDialog = true;
+      this.classForm.categoryName = "";
+      this.classForm.orderNum = "";
+      this.classTitle = "添加分类";
+    },
+    updataClass() {
+      this.addClassDialog = true;
+      this.classTitle = "修改分类";
+      this.classForm.categoryName = this.currentNode.categoryName;
+      this.classForm.orderNum = this.currentNode.orderNum;
+      this.classForm.categoryId = this.currentNode.categoryId;
     }
   }
 };
