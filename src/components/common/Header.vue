@@ -41,6 +41,7 @@
 import bus from "../common/bus";
 import { setTimeout } from "timers";
 // import { getUserInfo } from "../../api/index";
+import request from "../../utils/request";
 export default {
   data() {
     return {
@@ -49,7 +50,8 @@ export default {
       name: "",
       message: 2,
       ifAdmin: false,
-      ifMain: false
+      ifMain: false,
+      oldLoginName: ''
     };
   },
   computed: {
@@ -65,6 +67,7 @@ export default {
         localStorage.removeItem("ms_username");
         localStorage.removeItem("ifAdmin");
         localStorage.removeItem("ifMain");
+        localStorage.removeItem("loginName");
         this.$router.push("/login");
       }
     },
@@ -101,22 +104,22 @@ export default {
       this.fullscreen = !this.fullscreen;
     },
     toFile() {
-      if (this.ifAdmin === 'true') {
-        this.$router.push('userManage');
-      }else {
+      if (this.ifAdmin === "true") {
+        this.$router.push("userManage");
+      } else {
         this.$router.push("/file");
       }
     }
   },
-  created() {
-  
-  },
+  created() {},
   mounted() {
     if (document.body.clientWidth < 1500) {
       this.collapseChage();
     }
     this.ifAdmin = localStorage.getItem("ifAdmin");
     this.ifMain = localStorage.getItem("ifMain");
+    request.sendThis(this);
+    this.oldLoginName = localStorage.getItem("loginName");
   }
 };
 </script>

@@ -301,6 +301,7 @@ export default {
             localStorage.setItem("ms_username", rs.data.user.userName);
             localStorage.setItem("ifAdmin", rs.data.user.admin);
             localStorage.setItem("ifMain", rs.data.user.main);
+            localStorage.setItem("loginName", rs.data.user.loginName);
             if (this.ifAdmin) {
               this.ifEnoughMoney = true;
             } else {
