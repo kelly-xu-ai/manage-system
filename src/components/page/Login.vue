@@ -147,6 +147,7 @@
 
 <script>
 import { setPriority } from "os";
+import request from "../../utils/request";
 import {
   login,
   getUserInfo,
@@ -249,7 +250,8 @@ export default {
         onePassword: [
           { required: true, trigger: "blur", message: "请输入密码" }
         ]
-      }
+      },
+      oldLoginName: ''
     };
   },
   mounted() {
@@ -259,7 +261,10 @@ export default {
     }
   },
   methods: {
-    init() {},
+    init() {
+      this.oldLoginName = '';
+      request.sendThis(this);
+    },
     toLogin() {},
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
@@ -268,6 +273,7 @@ export default {
             if (!this.ifEnoughMoney) {
               this.noticeDialogVisible = true;
             } else {
+              this.oldLoginName = localStorage.getItem("loginName");
               if (this.ifAdmin) {
                 this.$router.push("/userManage");
               } else {
@@ -329,6 +335,7 @@ export default {
     },
     checkPassword() {
       return new Promise((resolve, reject) => {
+        this.oldLoginName = '';
         login({
           username: this.ruleForm.username,
           password: this.ruleForm.password

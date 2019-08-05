@@ -41,7 +41,6 @@
 import bus from "../common/bus";
 import { setTimeout } from "timers";
 // import { getUserInfo } from "../../api/index";
-import request from "../../utils/request";
 export default {
   data() {
     return {
@@ -50,8 +49,7 @@ export default {
       name: "",
       message: 2,
       ifAdmin: false,
-      ifMain: false,
-      oldLoginName: ''
+      ifMain: false
     };
   },
   computed: {
@@ -118,8 +116,6 @@ export default {
     }
     this.ifAdmin = localStorage.getItem("ifAdmin");
     this.ifMain = localStorage.getItem("ifMain");
-    request.sendThis(this);
-    this.oldLoginName = localStorage.getItem("loginName");
   }
 };
 </script>
