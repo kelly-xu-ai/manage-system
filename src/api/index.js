@@ -175,3 +175,11 @@ export const updateClass = (query) => {
         params: query
     })
 }
+
+export const logout = (query) => {
+    return request({
+        url: '/logout',
+        method: 'get',
+        params: query
+    })
+}

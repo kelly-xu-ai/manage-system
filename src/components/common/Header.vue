@@ -40,7 +40,7 @@
 <script>
 import bus from "../common/bus";
 import { setTimeout } from "timers";
-// import { getUserInfo } from "../../api/index";
+import { logout } from "../../api/index";
 export default {
   data() {
     return {
@@ -67,6 +67,7 @@ export default {
         localStorage.removeItem("ifMain");
         localStorage.removeItem("loginName");
         this.$router.push("/login");
+        logout();
       }
     },
     // 侧边栏折叠
