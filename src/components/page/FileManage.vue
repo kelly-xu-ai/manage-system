@@ -2,13 +2,14 @@
 <template>
   <section class="fileManage">
     <el-row>
-      <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;">
+      <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;overflow: scroll;">
         <el-tree
           :data="treeList"
           :props="defaultProps"
           @node-click="handleNodeClick"
           class="tree"
-          :default-expand-all="true"
+          accordion
+          :expand-on-click-node="false"
           :highlight-current="true"
         ></el-tree>
       </el-col>
@@ -29,11 +30,7 @@
           >
             <el-button size="small" type="primary" :disabled="addClassDisabled">上传文件</el-button>
           </el-upload>
-          <el-button
-            @click="addClassShow"
-            :disabled="addClassDisabled"
-            style="float:left;margin-right:10px;"
-          >添加分类</el-button>
+          <el-button @click="addClassShow" style="float:left;margin-right:10px;">添加分类</el-button>
           <el-button
             @click="updataClass"
             :disabled="addClassDisabled"
@@ -48,10 +45,19 @@
             <i class="el-icon-warning" style="color:#F7BA2A;margin-top:7px;"></i>
             <span style="font-size:12px;color:#475669;margin-left:5px;">先点击左侧树节点选择分类</span>
           </span>
+
+          <el-input
+            size="mini"
+            placeholder="请输入名称"
+            v-model="searchName"
+            style="float:right;width:233px;"
+          >
+            <i slot="prefix" class="el-input__icon el-icon-search" @click="fandFile"></i>
+          </el-input>
         </div>
         <el-table
           :data="fileData"
-          style="width: 100%;margin-top: 10px;"
+          style="width: 100%;margin-top: 10px;height: 680px;overflow-y: scroll;"
           @selection-change="handleSelectionChange"
           ref="multipleTable"
         >
@@ -140,6 +146,8 @@
         @node-click="getToChange"
         :default-expand-all="true"
         :highlight-current="true"
+        style="height: 450px;
+  overflow-y: scroll;"
       ></el-tree>
       <div class="login-btn" style="text-align:center;">
         <el-button
@@ -163,7 +171,7 @@
           <el-input v-model="fileForm.fileName" placeholder="请输入名称"></el-input>
         </el-form-item>
       </el-form>
-      <div style="width: 100%;text-align:center;">
+      <div style="width: 100%;text-align:center;flex:bottom;">
         <el-button @click="editFile('fileRuleForm')" type="primary" class="theme-color">确定</el-button>
         <el-button @click="updateFileDialog=false">取消</el-button>
       </div>
@@ -193,7 +201,10 @@ export default {
     return {
       addDialog: false,
       addClassDialog: false,
-      currentNode: {},
+      searchName: "",
+      currentNode: {
+        categoryId: 0
+      },
       rules: {
         categoryName: [
           { required: true, trigger: "blur", message: "请输入分类名称" }
@@ -273,13 +284,19 @@ export default {
           });
         });
     },
-    getFileList(categoryIds = null, pageNum = 1, pageSize = 10) {
+    getFileList(
+      categoryIds = null,
+      pageNum = 1,
+      pageSize = 10,
+      fileName = null
+    ) {
       return new Promise((resolve, reject) => {
         this.loading = true;
         getFilelist({
           categoryIds: categoryIds === 0 ? "" : categoryIds,
           pageNum: pageNum,
-          pageSize: pageSize
+          pageSize: pageSize,
+          fileName: fileName
         })
           .then(rs => {
             this.pagination.total = rs.total;
@@ -660,6 +677,9 @@ export default {
       this.classForm.categoryName = this.currentNode.categoryName;
       this.classForm.orderNum = this.currentNode.orderNum;
       this.classForm.categoryId = this.currentNode.categoryId;
+    },
+    fandFile() {
+      this.getFileList(null, 1, 10, this.searchName);
     }
   }
 };

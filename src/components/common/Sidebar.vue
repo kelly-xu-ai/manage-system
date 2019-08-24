@@ -54,27 +54,32 @@ export default {
         {
           index: "file",
           title: "课件",
-          show: true
+          show: true,
+          icon: 'el-icon-lx-file'
         },
         {
           index: "user",
           title: "主账号信息",
-          show: false
+          show: false,
+          icon: 'el-icon-lx-profile'
         },
         {
           index: "subUser",
           title: "子账号管理",
-          show: false
+          show: false,
+          icon: 'el-icon-lx-friend'
         },
         {
           index: "userManage",
           title: "用户管理",
-          show: false
+          show: false,
+          icon: 'el-icon-lx-group'
         },
         {
           index: "fileManage",
           title: "课件管理",
-          show: false
+          show: false,
+          icon: 'el-icon-lx-calendar'
         }
       ],
       ifShow: false,
@@ -143,7 +148,7 @@ export default {
   width: 0;
 }
 .sidebar-el-menu:not(.el-menu--collapse) {
-  width: 250px;
+  width: 200px;
 }
 .sidebar > ul {
   height: 100%;

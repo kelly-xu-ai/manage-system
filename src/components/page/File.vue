@@ -2,8 +2,8 @@
 <template>
   <section class="subuser">
     <el-row>
-      <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;">
-        <el-tree :data="treeList" :props="defaultProps" @node-click="handleNodeClick" class="tree"></el-tree>
+      <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;overflow: scroll;">
+        <el-tree :data="treeList" accordion :props="defaultProps" @node-click="handleNodeClick" class="tree"></el-tree>
       </el-col>
       <el-col
         :span="20"
@@ -13,26 +13,25 @@
       >
         <div style="display: flex;flex-wrap: wrap;">
           <template v-for="(file, index) in fileData">
-            <div :key="index" style="float:left;margin:30px;">
+            <div :key="index" style="float:left;margin:30px;width:170px;overflow:hidden;">
               <img
                 :src="getIcon(file.type)"
                 alt="file.fileName"
                 class="fileImg"
+                style="margin-left: 46px;"
                 @click="openFile(file.url)"
               />
-              <p style="font: 12px;">{{file.fileName}}</p>
+              <p style="font: 12px;text-align: center;">{{file.fileName}}</p>
             </div>
           </template>
         </div>
         <div>
           <el-pagination
-            @size-change="handleSizeChange"
             @current-change="handleCurrentChange"
             :current-page="pagination.currentPage"
-            :page-sizes="[10, 20, 30, 40]"
-            :page-size="pagination.size"
-            layout="total, sizes, prev, pager, next, jumper"
-            style="position: absolute;bottom: 50px;margin-left: 20px;"
+            :page-size="20"
+            layout="total, prev, pager, next, jumper"
+            style="position: absolute;bottom: 15px;margin-left: 20px;"
             :total="pagination.total"
           ></el-pagination>
         </div>
@@ -71,13 +70,13 @@ export default {
         size: 10,
         currentPage: 1
       },
-      categoryId: 0,
+      categoryId: null,
       loading: false
     };
   },
   components: {},
   mounted() {
-    this.getFileList(null, 1, 10);
+    this.getFileList(null, 1, 20);
     this.getTreeList();
   },
   methods: {
@@ -86,7 +85,7 @@ export default {
         .then(rs => {
           this.treeList = rs;
           if (rs.length) {
-            this.categoryId = rs[0].categoryId;
+            // this.categoryId = rs[0].categoryId;
           }
         })
         .catch(err => {
@@ -96,7 +95,7 @@ export default {
           });
         });
     },
-    getFileList(categoryIds = 1, pageNum = 1, pageSize = 10) {
+    getFileList(categoryIds = 1, pageNum = 1, pageSize = 20) {
       return new Promise((resolve, reject) => {
         this.loading = true;
         getFilelist({
@@ -152,16 +151,14 @@ export default {
       this.pagination.size = val;
       this.getFileList(
         this.categoryId,
-        this.pagination.currentPage,
-        this.pagination.size
+        this.pagination.currentPage
       );
     },
     handleCurrentChange(val) {
       this.pagination.currentPage = val;
       this.getFileList(
         this.categoryId,
-        this.pagination.currentPage,
-        this.pagination.size
+        this.pagination.currentPage
       );
     },
     handleSelectionChange(val) {
@@ -172,8 +169,7 @@ export default {
       this.categoryId = data.categoryId;
       this.getFileList(
         this.categoryId,
-        this.pagination.currentPage,
-        this.pagination.size
+        this.pagination.currentPage
       );
     },
     getIcon(type) {
