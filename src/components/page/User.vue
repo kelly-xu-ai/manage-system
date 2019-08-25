@@ -158,7 +158,7 @@ export default {
           } else {
             var userInfo = rs.data.user;
             this.user.name = userInfo.userName;
-            this.user.phone = userInfo.phonenumber;
+            this.user.phone = userInfo.loginName;
             this.user.endDate = userInfo.expirationDate;
           }
         })

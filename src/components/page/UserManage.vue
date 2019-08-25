@@ -73,7 +73,13 @@
       style="position: absolute;bottom: 50px;margin-left: 20px;"
       :total="pagination.total"
     ></el-pagination>
-    <el-dialog :title="titleTxt" :visible.sync="addDialog" width="400px" center :close-on-click-modal="false">
+    <el-dialog
+      :title="titleTxt"
+      :visible.sync="addDialog"
+      width="400px"
+      center
+      :close-on-click-modal="false"
+    >
       <el-form :model="ruleForm" :rules="rules" ref="passwordRuleForm" class="ms-content">
         <el-form-item prop="organization" label="机构名称">
           <el-input v-model="ruleForm.organization" placeholder="请输入"></el-input>
@@ -431,7 +437,9 @@ export default {
               loginName: this.ruleForm.phone,
               password: this.ruleForm.password,
               phonenumber: this.ruleForm.phone,
-              userId: this.ruleForm.userId
+              userId: this.ruleForm.userId,
+              organization: this.ruleForm.organization,
+              expirationDate: this.ruleForm.expirationDate
             })
               .then(rs => {
                 if (rs.code === 0) {
