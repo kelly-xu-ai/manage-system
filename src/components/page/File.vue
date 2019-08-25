@@ -3,7 +3,7 @@
   <section class="subuser">
     <el-row>
       <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;overflow: scroll;">
-        <el-tree :data="treeList" accordion :props="defaultProps" @node-click="handleNodeClick" class="tree"></el-tree>
+        <el-tree :data="treeList" :expand-on-click-node="false" accordion :props="defaultProps" @node-click="handleNodeClick" class="tree"></el-tree>
       </el-col>
       <el-col
         :span="20"

@@ -246,11 +246,11 @@ export default {
     },
     changeUser(row) {
       this.titleTxt = "修改账号";
-      this.oldPhone = row.phonenumber;
+      this.oldPhone = row.loginName;
       this.ruleForm = {
         name: row.userName,
         password: row.password,
-        phone: row.phonenumber,
+        phone: row.loginName,
         userId: row.userId
       };
       this.addDialog = true;
