@@ -100,7 +100,8 @@ export default {
 #readFile {
   text-align: center;
   background-color: gray;
-  height: 100%;
+  height: auto;
+  min-height: 100%;
 }
 #readFile img {
   background-color: #fff;
