@@ -39,6 +39,16 @@ export default {
     window.onload = function() {
       document.oncontextmenu = blockright;
     };
+
+    //禁用页面的ctrl功能，来禁止ctrl+s保存功能
+    window.addEventListener("keydown", function(e) {
+      if (
+        e.keyCode == 83 &&
+        (navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)
+      ) {
+        e.preventDefault();
+      }
+    });
   },
   methods: {
     init() {
