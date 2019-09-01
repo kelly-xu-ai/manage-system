@@ -5,7 +5,13 @@
       <img v-lazy="item" :key="item" />
     </template>
     <img :src="imageUrl" v-show="type==0" />
-    <video :src="imageUrl" controls controlsList="nodownload" v-show="type==1" style="marin-top:10px;"></video>
+    <video
+      :src="imageUrl"
+      controls
+      controlslist="nodownload"
+      v-show="type==1"
+      style="marin-top:10px;"
+    ></video>
   </div>
 </template>
 
@@ -24,6 +30,15 @@ export default {
   },
   mounted() {
     this.init();
+    function blockright(oEvent) {
+      if (window.event) {
+        oEvent = window.event; //处理兼容性，获得事件对象
+        oEvent.returnValue = false;
+      } else oEvent.preventDefault();
+    }
+    window.onload = function() {
+      document.oncontextmenu = blockright;
+    };
   },
   methods: {
     init() {
