@@ -12,12 +12,14 @@ import './assets/css/theme-green/index.css';       // 浅绿色主题
 import './assets/css/icon.css';
 import './components/common/directives';
 import "babel-polyfill";
+import VueLazyload from 'vue-lazyload';
 
 Vue.config.productionTip = false
 Vue.use(VueI18n);
 Vue.use(ElementUI, {
     size: 'small'
 });
+Vue.use(VueLazyload);
 Vue.prototype.$axios = axios;
 
 const i18n = new VueI18n({

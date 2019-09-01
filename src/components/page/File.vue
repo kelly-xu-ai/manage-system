@@ -3,7 +3,14 @@
   <section class="subuser">
     <el-row>
       <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;overflow: scroll;">
-        <el-tree :data="treeList" :expand-on-click-node="false" accordion :props="defaultProps" @node-click="handleNodeClick" class="tree"></el-tree>
+        <el-tree
+          :data="treeList"
+          :expand-on-click-node="false"
+          accordion
+          :props="defaultProps"
+          @node-click="handleNodeClick"
+          class="tree"
+        ></el-tree>
       </el-col>
       <el-col
         :span="20"
@@ -19,7 +26,7 @@
                 alt="file.fileName"
                 class="fileImg"
                 style="margin-left: 46px;"
-                @click="openFile(file.url)"
+                @click="openFile(file.id)"
               />
               <p style="font: 12px;text-align: center;">{{file.fileName}}</p>
             </div>
@@ -149,17 +156,11 @@ export default {
     remove() {},
     handleSizeChange(val) {
       this.pagination.size = val;
-      this.getFileList(
-        this.categoryId,
-        this.pagination.currentPage
-      );
+      this.getFileList(this.categoryId, this.pagination.currentPage);
     },
     handleCurrentChange(val) {
       this.pagination.currentPage = val;
-      this.getFileList(
-        this.categoryId,
-        this.pagination.currentPage
-      );
+      this.getFileList(this.categoryId, this.pagination.currentPage);
     },
     handleSelectionChange(val) {
       this.multipleSelection = val;
@@ -167,17 +168,14 @@ export default {
     handleNodeClick(data) {
       console.log(data);
       this.categoryId = data.categoryId;
-      this.getFileList(
-        this.categoryId,
-        this.pagination.currentPage
-      );
+      this.getFileList(this.categoryId, this.pagination.currentPage);
     },
     getIcon(type) {
       return this.iconList[type];
     },
-    openFile(url) {
-      console.log(url);
-      window.open('/profile/' + url, "_blank");
+    openFile(id) {
+      let routeData = this.$router.resolve({ path: `/readFile?fileId=${id}` });
+      window.open(routeData.href, "_blank");
     }
   }
 };

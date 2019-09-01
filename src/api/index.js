@@ -184,3 +184,11 @@ export const logout = (query) => {
     })
 }
 
+export const readFile = (query) => {
+    return request({
+        url: '/file/get',
+        method: 'post',
+        params: query
+    })
+}
+

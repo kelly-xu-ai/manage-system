@@ -128,6 +128,10 @@ export default new Router({
         {
             path: '*',
             redirect: '/404'
+        },
+        {
+            path: '/readFile',
+            component: resolve => require(['../components/page/ReadFile.vue'], resolve)
         }
     ]
 })
