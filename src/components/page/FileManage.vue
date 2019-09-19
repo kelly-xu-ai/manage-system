@@ -218,6 +218,7 @@ export default {
         {
           categoryId: 0,
           categoryName: "分类管理",
+          ancestors: -1,
           children: []
         }
       ],
