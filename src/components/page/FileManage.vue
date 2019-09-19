@@ -11,6 +11,8 @@
           accordion
           :expand-on-click-node="false"
           :highlight-current="true"
+          node-key="categoryId"
+          :default-expanded-keys="[categoryId?categoryId:'']"
         ></el-tree>
       </el-col>
       <el-col :span="20" style="height: 850px;;background: #fff;" v-loading="loading">
@@ -270,7 +272,7 @@ export default {
   },
   methods: {
     init() {
-      this.getFileList(null, 1, 10);
+      this.getFileList(this.categoryId , 1, 10);
       this.getTreeList();
     },
     getTreeList() {
