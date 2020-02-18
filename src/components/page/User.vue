@@ -148,7 +148,9 @@ export default {
   },
   methods: {
     init() {
-      getUserInfo()
+      getUserInfo({
+        time:new Date()
+      })
         .then(rs => {
           if (rs.code !== 0) {
             this.$message({

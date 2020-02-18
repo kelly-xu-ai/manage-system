@@ -289,7 +289,9 @@ export default {
     },
     checkIfEnoughMoney() {
       return new Promise((resolve, reject) => {
-        getUserInfo()
+        getUserInfo({
+          time:new Date()
+        })
           .then(rs => {
             if (rs.code !== 0) {
               if (rs.code === 401) {
