@@ -106,8 +106,8 @@ export default {
 #readFile img {
   background-color: #fff;
   text-align: center;
-  width: 1280px;
-  height: 720px;
+  max-width:1280px;
+  width:expression(this.width > 1280 ? "1280px" : this.width);
   margin-top: 6px;
 }
 </style>
