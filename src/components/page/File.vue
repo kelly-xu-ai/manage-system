@@ -2,7 +2,7 @@
 <template>
   <section class="subuser">
     <el-row>
-      <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;overflow: scroll;">
+      <el-col :span="4" class="sidebar-el-menu el-menu" style=" height: 100%;overflow: scroll;">
         <el-tree
           :data="treeList"
           :expand-on-click-node="false"
@@ -14,11 +14,11 @@
       </el-col>
       <el-col
         :span="20"
-        style="height: 850px;;background: #fff;"
+        style="height:auto; min-height: 850px; background: #fff;"
         v-loading="loading"
         element-loading-text="拼命加载中"
       >
-        <div style="display: flex;flex-wrap: wrap;">
+        <div style="display: flex;flex-wrap: wrap; margin-bottom: 50px">
           <template v-for="(file, index) in fileData">
             <div :key="index" style="float:left;margin:30px;width:170px;overflow:hidden;">
               <img
