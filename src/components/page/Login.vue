@@ -142,12 +142,14 @@
         </div>
       </el-form>
     </el-dialog>
+    <v-footer></v-footer>
   </div>
 </template>
 
 <script>
 import { setPriority } from "os";
 import request from "../../utils/request";
+import vFooter from './../common/Footer.vue';
 import {
   login,
   getUserInfo,
@@ -156,6 +158,8 @@ import {
   verifyCode,
   forgetPwd
 } from "../../api/index";
+import vHead from "../common/Header";
+import vSidebar from "../common/Sidebar";
 export default {
   data: function() {
     let checkUser = (rule, value, callback) => {
@@ -253,6 +257,9 @@ export default {
       },
       oldLoginName: ''
     };
+  },
+  components:{
+    vFooter
   },
   mounted() {
     this.init();
