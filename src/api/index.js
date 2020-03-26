@@ -192,3 +192,12 @@ export const readFile = (query) => {
     })
 }
 
+export const oderList = (query) => {
+    return request({
+        url: '/system/order/all/list',
+        method: 'post',
+        params: query
+    })
+}
+
+

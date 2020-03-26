@@ -2,7 +2,7 @@
 <template>
   <div class="login-wrap">
     <div class="ms-login" v-show="!(passwordDialogVisible||resetDialog)">
-      <div class="ms-title theme-color">客户端登录</div>
+      <div class="ms-title theme-color">后台管理系统登录</div>
       <el-form
         :model="ruleForm"
         :rules="rules"
@@ -166,7 +166,7 @@ export default {
       if (!value) {
         return callback(new Error("请输入用户名"));
       }
-      this.checkUser().then(rep => {
+      this.checkUser(value).then(rep => {
         if (!rep) {
           return callback(new Error("用户名不存在"));
         }
@@ -337,10 +337,16 @@ export default {
           });
       });
     },
-    checkUser() {
-      return new Promise((resolve, reject) => {
-        resolve(true);
-      });
+    checkUser(value) {
+      if (value != 'admin') {
+        return new Promise((resolve, reject) => {
+          resolve(false);
+        });
+      }else {
+        return new Promise((resolve, reject) => {
+          resolve(true);
+        });
+      }
     },
     checkPassword() {
       return new Promise((resolve, reject) => {

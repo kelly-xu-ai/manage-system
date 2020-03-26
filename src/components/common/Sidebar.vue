@@ -44,41 +44,21 @@
 
 <script>
 import bus from "../common/bus";
-import { fail } from "assert";
-import { getUserInfo } from "../../api/index";
 export default {
   data() {
     return {
       collapse: false,
       items: [
         {
-          index: "file",
-          title: "课件",
-          show: true,
-          icon: 'el-icon-lx-file'
-        },
-        {
-          index: "user",
-          title: "主账号信息",
-          show: false,
-          icon: 'el-icon-lx-profile'
-        },
-        {
-          index: "subUser",
-          title: "子账号管理",
-          show: false,
-          icon: 'el-icon-lx-friend'
-        },
-        {
           index: "userManage",
           title: "用户管理",
-          show: false,
+          show: true,
           icon: 'el-icon-lx-group'
         },
         {
-          index: "fileManage",
-          title: "课件管理",
-          show: false,
+          index: "orderManage",
+          title: "订单管理",
+          show: true,
           icon: 'el-icon-lx-calendar'
         }
       ],
@@ -99,18 +79,10 @@ export default {
     });
   },
   mounted() {
-    this.ifAdmin = localStorage.getItem("ifAdmin");
     this.ifMain = localStorage.getItem("ifMain");
-    if (this.ifAdmin === "true") {
-      this.items[0].show = false;
-      this.items[1].show = false; // 主账号信息
-      this.items[2].show = false; // 子账号管理
-      this.items[3].show = true;
-      this.items[4].show = true;
-    } else {
+    if (this.ifMain !== "true") {
       this.items[3].show = false; // 用户管理
       this.items[4].show = false; // 课件管理
-      this.items[0].show = true; // 课件
     }
   },
   watch: {

@@ -2,66 +2,16 @@
 <template>
   <section class="subuser">
     <el-button @click="addUser">添加账号</el-button>
-    <el-select
-      v-model="selectValue"
-      placeholder="用户状态"
-      size="mini"
-      style="margin-left: 20px;"
-      @change="selectChange"
-    >
-      <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"></el-option>
-    </el-select>
     <el-table
       :data="tableData"
       style="width: 100%;margin-top: 10px;"
       v-loading="loading"
       element-loading-text="拼命加载中"
     >
-      <el-table-column prop="organization" label="机构" align="center" label-class-name="theme-color"></el-table-column>
       <el-table-column prop="userName" label="用户名" align="center" label-class-name="theme-color"></el-table-column>
       <el-table-column prop="loginName" label="手机号" align="center" label-class-name="theme-color"></el-table-column>
-      <el-table-column label="状态" align="center" label-class-name="theme-color">
-        <template slot-scope="scope">
-          <span>{{ scope.row.delFlag==0 ? "正常":"停用" }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="expirationDate"
-        label="到期时间"
-        align="center"
-        label-class-name="theme-color"
-      ></el-table-column>
-      <el-table-column
-        fixed="right"
-        label="设置"
-        width="500"
-        align="center"
-        label-class-name="theme-color"
-      >
-        <template slot-scope="scope">
-          <el-button @click="lookSubList(scope.row.userId)" type="text" size="small">子账号列表</el-button>
-          <el-button
-            @click="lockUser(scope.row)"
-            type="text"
-            size="small"
-            v-if="scope.row.delFlag == 0"
-          >冻结</el-button>
-          <el-button
-            @click="initUser(scope.row)"
-            type="text"
-            size="small"
-            v-if="scope.row.delFlag == 1"
-          >恢复</el-button>
-
-          <el-button @click="changeUser(scope.row)" type="text" size="small">修改</el-button>
-          <el-button
-            type="text"
-            size="small"
-            @click="deleteUser(scope.row.userId)"
-            style="color: #FF4949"
-          >删除</el-button>
-        </template>
-      </el-table-column>
+      <el-table-column prop="email" label="邮箱" align="center" label-class-name="theme-color"></el-table-column>
+      <el-table-column prop="createTime" label="注册时间" align="center" label-class-name="theme-color"></el-table-column>
     </el-table>
     <el-pagination
       @size-change="handleSizeChange"
@@ -81,27 +31,20 @@
       :close-on-click-modal="false"
     >
       <el-form :model="ruleForm" :rules="rules" ref="passwordRuleForm" class="ms-content">
-        <el-form-item prop="organization" label="机构名称">
-          <el-input v-model="ruleForm.organization" placeholder="请输入"></el-input>
-        </el-form-item>
+
         <el-form-item prop="name" label="用户名">
           <el-input v-model="ruleForm.name" placeholder="请输入"></el-input>
         </el-form-item>
         <el-form-item prop="phone" label="手机号">
           <el-input v-model="ruleForm.phone" placeholder="请输入"></el-input>
         </el-form-item>
+        <el-form-item prop="email" label="邮箱">
+          <el-input v-model="ruleForm.email" placeholder="请输入"></el-input>
+        </el-form-item>
         <el-form-item prop="password" label="密码">
           <el-input v-model="ruleForm.password" placeholder="请输入密码"></el-input>
         </el-form-item>
-        <el-form-item prop="expirationDate" label="设置会员期限">
-          <el-date-picker
-            v-model="ruleForm.expirationDate"
-            type="date"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            placeholder="选择日期"
-            :picker-options="pickerOptions0"
-            style="width: 100%;"
-          ></el-date-picker>
+
           <!-- <el-select v-model="ruleForm.value" placeholder="请选择" style="width: 100%;">
             <el-option
               v-for="item in dateOptions"
@@ -110,7 +53,6 @@
               :value="item.value"
             ></el-option>
           </el-select>-->
-        </el-form-item>
         <div class="login-btn" style="text-align:center;">
           <el-button type="primary" class="theme-color" @click="submitForm('passwordRuleForm')">确定</el-button>
           <el-button @click="addDialog=false">取消</el-button>
@@ -227,11 +169,10 @@ export default {
       ],
       tableData: [],
       ruleForm: {
-        organization: "",
         name: "",
         password: "",
         phone: "",
-        expirationDate: ""
+        email:""
       },
       rules: {
         name: [{ required: true, trigger: "blur", validator: checkUser }],
@@ -255,6 +196,7 @@ export default {
   components: {},
   mounted() {
     this.getUserList();
+
   },
   methods: {
     getUserList(pageNum = 1, pageSize = 10, selectValue) {
@@ -404,8 +346,7 @@ export default {
               loginName: this.ruleForm.phone,
               password: this.ruleForm.password,
               phonenumber: this.ruleForm.phone,
-              organization: this.ruleForm.organization,
-              expirationDate: this.ruleForm.expirationDate
+              email: this.ruleForm.email,
             })
               .then(rs => {
                 if (rs.code === 0) {
@@ -477,14 +418,12 @@ export default {
         name: "",
         password: "",
         phone: "",
-        organization: "",
-        expirationDate: ""
+        email: ""
       };
       this.addDialog = true;
       this.rules.name[0].required = true;
       this.rules.password[0].required = true;
       this.rules.phone[0].required = true;
-      this.rules.expirationDate[0].required = true;
     },
     lookSubList(id) {
       this.$router.push(`/subUser?parentId=${id}`);
