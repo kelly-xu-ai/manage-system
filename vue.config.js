@@ -1,5 +1,6 @@
 module.exports = {
     baseUrl: './',
+    // publicPath:'/admin',
     assetsDir: 'static',
     productionSourceMap: false,
     devServer: {

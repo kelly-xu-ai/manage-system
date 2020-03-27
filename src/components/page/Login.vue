@@ -25,12 +25,6 @@
             <el-button slot="prepend" icon="el-icon-lx-lock"></el-button>
           </el-input>
         </el-form-item>
-        <el-button
-          type="text"
-          class="theme-font"
-          style="float: right;margin-bottom: 10px;"
-          @click="forgetButton"
-        >忘记密码</el-button>
         <div class="login-btn">
           <el-button type="primary" class="theme-color" @click="submitForm('loginRuleForm')">登录</el-button>
         </div>
