@@ -22,7 +22,7 @@
           <template v-for="(file, index) in fileData">
             <div :key="index" style="float:left;margin:30px;width:170px;overflow:hidden;">
               <img
-                :src="getIcon(file.type)"
+                :src="file.type === '0' ? '/profile/pre/' + file.url : getIcon(file.type)"
                 alt="file.fileName"
                 class="fileImg"
                 style="margin-left: 46px;"

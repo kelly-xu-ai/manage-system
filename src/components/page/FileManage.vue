@@ -2,7 +2,7 @@
 <template>
   <section class="fileManage">
     <el-row>
-      <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;overflow: scroll;">
+      <el-col :span="4" class="sidebar-el-menu el-menu" style="height: 100%;">
         <el-tree
           :data="treeList"
           :props="defaultProps"
@@ -10,6 +10,7 @@
           class="tree"
           accordion
           :expand-on-click-node="false"
+          default-expand-all = true
           :highlight-current="true"
           node-key="categoryId"
           :default-expanded-keys="[categoryId?categoryId:'']"
@@ -53,13 +54,14 @@
             placeholder="请输入名称"
             v-model="searchName"
             style="float:right;width:233px;"
+            @keyup.enter.native = "fandFile"
           >
             <i slot="prefix" class="el-input__icon el-icon-search" @click="fandFile"></i>
           </el-input>
         </div>
         <el-table
           :data="fileData"
-          style="width: 100%;margin-top: 10px;height: 680px;overflow-y: scroll;"
+          style="width: 100%;margin-top: 10px;height: 680px;"
           @selection-change="handleSelectionChange"
           ref="multipleTable"
         >
@@ -291,7 +293,7 @@ export default {
       categoryIds = null,
       pageNum = 1,
       pageSize = 10,
-      fileName = null
+      fileName = this.searchName
     ) {
       return new Promise((resolve, reject) => {
         this.loading = true;
@@ -476,6 +478,8 @@ export default {
       this.updateDisabled = false;
       this.addClassDisabled = false;
       this.categoryId = data.categoryId;
+      this.pagination.currentPage = 1;
+      this.searchName = '';
       this.getFileList(
         this.categoryId,
         this.pagination.currentPage,
@@ -682,7 +686,7 @@ export default {
       this.classForm.categoryId = this.currentNode.categoryId;
     },
     fandFile() {
-      this.getFileList(null, 1, 10, this.searchName);
+      this.getFileList(this.categoryId, 1, 10, this.searchName);
     }
   }
 };
@@ -699,7 +703,9 @@ export default {
 .tree {
   height: 850px;
   background: #d3dce6;
+  overflow-y: scroll;
 }
+
 .fileImg {
   width: 20px;
   height: 20px;
