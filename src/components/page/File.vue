@@ -2,7 +2,7 @@
 <template>
   <section class="subuser">
     <el-row>
-      <el-col :span="4" class="sidebar-el-menu el-menu" style=" height: 100%;overflow: scroll;">
+      <el-col :span="4" class="sidebar-el-menu el-menu" style=" height: 100%;">
         <el-tree
           :data="treeList"
           :expand-on-click-node="false"
@@ -190,6 +190,7 @@ export default {
 .tree {
   height: 850px;
   background: #d3dce6;
+  overflow-y: scroll;
 }
 </style>
 <style>

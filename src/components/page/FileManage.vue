@@ -10,10 +10,9 @@
           class="tree"
           accordion
           :expand-on-click-node="false"
-          default-expand-all = true
           :highlight-current="true"
           node-key="categoryId"
-          :default-expanded-keys="[categoryId?categoryId:'']"
+          :default-expanded-keys="[categoryId?categoryId:'0']"
         ></el-tree>
       </el-col>
       <el-col :span="20" style="height: 850px;;background: #fff;" v-loading="loading">
@@ -704,6 +703,7 @@ export default {
   height: 850px;
   background: #d3dce6;
   overflow-y: scroll;
+  overflow-x:auto
 }
 
 .fileImg {
