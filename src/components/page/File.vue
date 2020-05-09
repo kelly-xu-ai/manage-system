@@ -181,7 +181,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="stylus">
 .fileImg {
   width: 79px;
   height: 102px;
@@ -190,7 +190,13 @@ export default {
 .tree {
   height: 850px;
   background: #d3dce6;
-  overflow-y: scroll;
+  overflow-y: auto;
+  overflow-x: auto;
+  >>>.el-tree-node{
+    > .el-tree-node__children{
+      overflow visible
+    }
+  }
 }
 </style>
 <style>
