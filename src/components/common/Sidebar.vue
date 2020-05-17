@@ -102,15 +102,19 @@ export default {
     this.ifAdmin = localStorage.getItem("ifAdmin");
     this.ifMain = localStorage.getItem("ifMain");
     if (this.ifAdmin === "true") {
-      this.items[0].show = false;
+      this.items[0].show = true;
       this.items[1].show = false; // 主账号信息
       this.items[2].show = false; // 子账号管理
       this.items[3].show = true;
       this.items[4].show = true;
-    } else {
-      this.items[3].show = false; // 用户管理
-      this.items[4].show = false; // 课件管理
+    } else if (this.ifMain === "true") {
+      this.items[1].show = true; // 主账号信息
+      this.items[2].show = true; // 子账号管理
       this.items[0].show = true; // 课件
+    } else {
+        this.items[3].show = false; // 用户管理
+        this.items[4].show = false; // 课件管理
+        this.items[0].show = true; // 课件
     }
   },
   watch: {
@@ -124,7 +128,7 @@ export default {
           this.items[1].show = true;
           this.items[2].show = true;
           // 主账号点击个人中心只显示主账号信息，子账号管理
-          this.items[0].show = false;
+          this.items[0].show = true;
           this.items[3].show = false;
           this.items[4].show = false;
         }

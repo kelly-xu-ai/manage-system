@@ -18,6 +18,15 @@
         v-loading="loading"
         element-loading-text="拼命加载中"
       >
+          <el-input
+                  size="mini"
+                  placeholder="请输入名称"
+                  v-model="searchName"
+                  style="width:233px; position: relative;margin-top: 10px;margin-left: 30px"
+                  @keyup.enter.native = "fandFile"
+          >
+              <i slot="prefix" class="el-input__icon el-icon-search" @click="fandFile"></i>
+          </el-input>
         <div style="display: flex;flex-wrap: wrap; margin-bottom: 50px">
           <template v-for="(file, index) in fileData">
             <div :key="index" style="float:left;margin:30px;width:170px;overflow:hidden;">
@@ -61,6 +70,7 @@ export default {
       addDialog: false,
       fileData: [],
       treeList: [],
+      searchName: "",
       defaultProps: {
         children: "children",
         label: "categoryName"
@@ -102,13 +112,15 @@ export default {
           });
         });
     },
-    getFileList(categoryIds = 1, pageNum = 1, pageSize = 20) {
+    getFileList(categoryIds = 1, pageNum = 1, pageSize = 20,
+                fileName = this.searchName) {
       return new Promise((resolve, reject) => {
         this.loading = true;
         getFilelist({
           categoryIds: categoryIds,
           pageNum: pageNum,
-          pageSize: pageSize
+          pageSize: pageSize,
+          fileName: fileName
         })
           .then(rs => {
             this.pagination.total = rs.total;
@@ -168,6 +180,7 @@ export default {
     handleNodeClick(data) {
       console.log(data);
       this.categoryId = data.categoryId;
+      this.searchName = "";
       this.getFileList(this.categoryId, this.pagination.currentPage);
     },
     getIcon(type) {
@@ -176,6 +189,9 @@ export default {
     openFile(id) {
       let routeData = this.$router.resolve({ path: `/readFile?fileId=${id}` });
       window.open(routeData.href, "_blank");
+    },
+    fandFile() {
+      this.getFileList(this.categoryId, 1, 20, this.searchName);
     }
   }
 };
