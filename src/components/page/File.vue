@@ -31,7 +31,7 @@
           <template v-for="(file, index) in fileData">
             <div :key="index" style="float:left;margin:30px;width:170px;overflow:hidden;">
               <img
-                :src="file.type === '0' ? '/profile/pre/' + file.url : (file.type === '4' ? '/home/profile/image/' + file.url + '/image_0_0.jpg' : getIcon(file.type))"
+                :src="file.type === '0' ? '/profile/pre/' + file.url : (file.type === '4' ? '/profile/image/' + file.url + '/image_0_0.jpg' : getIcon(file.type))"
                 alt="file.fileName"
                 class="fileImg"
                 style="margin-left: 46px;"
