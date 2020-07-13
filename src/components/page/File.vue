@@ -199,7 +199,6 @@ export default {
 
 <style scoped lang="stylus">
 .fileImg {
-  width: 79px;
   height: 102px;
   cursor: pointer;
 }
