@@ -6,7 +6,7 @@
       <i class="el-icon-menu"></i>
     </div>
     <div class="logo" @click="toFile" style=" cursor: pointer;">
-      <img src="../../assets/img/logo.png" style="width:250px;height:50px;margin-top:10px;" />
+      <img src="../../assets/img/logo.png" style="height: 50px; margin-top: 10px;" />
     </div>
     <div class="header-right">
       <div class="header-user-con">
