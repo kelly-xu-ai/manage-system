@@ -173,17 +173,17 @@ a {
 }
 
 #app .theme-color, #app .el-dialog__header{
-    background: rgb(136, 206, 26);
-    border: rgb(136, 206, 26);
+    background: rgb(0, 159, 233);
+    border: rgb(0, 159, 233);
     color: #fff;
 }
 #app .theme-color:focus, #app .theme-color:hover {
-    background: rgb(136, 206, 26);
-    border-color: rgb(136, 206, 26);
+    background: rgb(0, 159, 233);
+    border-color: rgb(0, 159, 233);
     color: #FFF;
 }
 
 
 #app .theme-font {
-    color: rgb(136, 206, 26);
+    color: rgb(0, 159, 233);
 }
